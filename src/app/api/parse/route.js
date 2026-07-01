@@ -25,6 +25,32 @@ function extractCaptionFromJson(data) {
   return JSON.stringify(data);
 }
 
+// Helper to download video and convert to base64 for Gemini multimodal input
+async function downloadVideoAsBase64(url) {
+  try {
+    console.log(`Downloading video bytes from: ${url.substring(0, 100)}...`);
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // Limit to 10MB to avoid Vercel serverless size/timeout limitations
+    if (buffer.length > 10 * 1024 * 1024) {
+      console.warn("Video size exceeds 10MB limit, skipping multimodal input.");
+      return null;
+    }
+    
+    return {
+      data: buffer.toString('base64'),
+      mimeType: 'video/mp4'
+    };
+  } catch (err) {
+    console.error("Failed to download video data:", err);
+    return null;
+  }
+}
+
 // Simple crawler to extract basic metadata from a URL (with RapidAPI integration)
 async function extractMetadata(url) {
   try {
@@ -53,13 +79,15 @@ async function extractMetadata(url) {
         if (response.ok) {
           const data = await response.json();
           const caption = extractCaptionFromJson(data);
+          const videoUrl = data.video_url || data.data?.video_url || data.data?.main_media_hd || data.data?.main_media;
           if (caption) {
-            console.log("RapidAPI successfully scraped caption! Length:", caption.length);
+            console.log("RapidAPI successfully scraped caption! Length:", caption.length, "VideoUrl:", videoUrl ? "Present" : "Missing");
             return {
               title: data.title || '',
               description: caption,
               provider: isInstagram ? 'Instagram' : (isTikTok ? 'TikTok' : 'Web'),
-              extractedText: caption
+              extractedText: caption,
+              videoUrl: videoUrl || ''
             };
           }
         } else {
@@ -246,7 +274,20 @@ SVG Guidelines:
 
 Ensure all ingredients have estimated numeric quantities where possible so they can be scaled.`;
 
-     const result = await model.generateContent(prompt);
+    let contents = [];
+    if (extractedMeta?.videoUrl) {
+      const videoData = await downloadVideoAsBase64(extractedMeta.videoUrl);
+      if (videoData) {
+        console.log("Adding video bytes to Gemini request payload.");
+        contents.push({
+          inlineData: videoData
+        });
+        contents.push("Watch the cooking video provided inline, listen to the voiceover, read any text overlays, and combine this with the caption context to build the structured recipe card.");
+      }
+    }
+    contents.push(prompt);
+
+    const result = await model.generateContent(contents);
     const responseText = result.response.text();
     console.log("Gemini API raw response:", responseText);
     
