@@ -235,12 +235,6 @@ export default function Home() {
               </button>
             </form>
 
-            {url.includes('instagram.com') && (
-              <div className={styles.infoBanner}>
-                <span className={styles.infoIcon}>💡</span>
-                <span>Instagram links require a RapidAPI key. If not configured, copy the caption text and paste it below!</span>
-              </div>
-            )}
 
             {/* Collapsible Transcript / Description Fallback */}
             <div className={styles.collapsibleArea}>
