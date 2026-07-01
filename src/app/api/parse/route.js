@@ -82,17 +82,37 @@ export async function POST(request) {
     let sourceText = rawText || '';
     let extractedMeta = null;
 
+    const isInstagramUrl = url && url.includes('instagram.com');
+
+    if (isInstagramUrl && !sourceText.trim()) {
+      return NextResponse.json(
+        { error: 'Instagram links cannot be scraped automatically due to platform security. Please copy the caption/ingredients from the Instagram post and paste it into the fallback text area below!' },
+        { status: 400 }
+      );
+    }
+
     if (url && url.startsWith('http')) {
       extractedMeta = await extractMetadata(url);
-      if (extractedMeta && !extractedMeta.error) {
+      
+      const isLoginWall = extractedMeta && (
+        (extractedMeta.title && extractedMeta.title.toLowerCase().includes('login')) ||
+        (extractedMeta.title === 'Instagram') ||
+        (extractedMeta.description && extractedMeta.description.toLowerCase().includes('welcome back to instagram'))
+      );
+
+      if (extractedMeta && !extractedMeta.error && !isLoginWall) {
         const metaInfo = `[Metadata Extracted from Link]
 Platform: ${extractedMeta.provider || 'Unknown'}
 Title: ${extractedMeta.title || ''}
 Description: ${extractedMeta.description || extractedMeta.title || ''}
 ${extractedMeta.author ? 'Creator: ' + extractedMeta.author : ''}`;
         
-        // Combine extracted metadata with any user-provided manual text
         sourceText = `${metaInfo}\n\n[User Copied Caption/Notes]\n${sourceText}`;
+      } else if (isLoginWall && !sourceText.trim()) {
+        return NextResponse.json(
+          { error: 'Scraping was blocked by the platform login wall. Please copy the post caption/ingredients and paste it in the fallback text area below!' },
+          { status: 400 }
+        );
       }
     }
 

@@ -197,7 +197,13 @@ export default function Home() {
             className={styles.urlInput}
             placeholder="Paste TikTok or Instagram recipe URL here..."
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setUrl(val);
+              if (val.includes('instagram.com')) {
+                setShowFallback(true);
+              }
+            }}
           />
           <button 
             type="submit" 
@@ -207,6 +213,12 @@ export default function Home() {
             {loading ? "Generating..." : "Get Recipe ✨"}
           </button>
         </form>
+
+        {url.includes('instagram.com') && (
+          <div style={{ color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: '600', animation: 'fadeIn 0.2s' }}>
+            💡 Instagram links cannot be read automatically due to platform security. Please copy the caption/ingredients from the post and paste it below!
+          </div>
+        )}
 
         {/* Collapsible Transcript / Description Fallback */}
         <button 
