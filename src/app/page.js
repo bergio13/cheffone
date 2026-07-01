@@ -19,7 +19,7 @@ export default function Home() {
   const [showFallback, setShowFallback] = useState(false);
   const [recipes, setRecipes] = useState([]);
   const [activeRecipeId, setActiveRecipeId] = useState(null);
-  
+
   const [activeTab, setActiveTab] = useState('recipe'); // 'recipe', 'nutrition'
   const [adjustedServings, setAdjustedServings] = useState(2);
   const [checkedIngredients, setCheckedIngredients] = useState({});
@@ -27,7 +27,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [loaderTipIndex, setLoaderTipIndex] = useState(0);
   const [error, setError] = useState('');
-  
+
   const [isImportOpen, setIsImportOpen] = useState(false); // Modal control for link import
 
   // Load Saved Recipes on mount
@@ -171,10 +171,9 @@ export default function Home() {
           <span className={styles.fastFoodIcon}>🍔</span>
           <div className={styles.logoText}>
             <h1>Cheffone</h1>
-            <p>Hot & Fresh Video-to-Recipe Planner ⚡</p>
           </div>
         </div>
-        <button 
+        <button
           onClick={() => setIsImportOpen(true)}
           className={styles.primaryButton}
           style={{ padding: '0.8rem 1.6rem', fontSize: '1rem' }}
@@ -187,20 +186,20 @@ export default function Home() {
       {isImportOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsImportOpen(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button 
-              className={styles.modalClose} 
+            <button
+              className={styles.modalClose}
               onClick={() => setIsImportOpen(false)}
               title="Close window"
             >
               ✕
             </button>
-            
+
             <div className={styles.parseHeader}>
               <div className={styles.stickerBadge}>HOT & FRESH</div>
               <h2 className={styles.parseTitle}>Scan a Video Recipe</h2>
               <p className={styles.parseSubtitle}>Paste a link below to parse the video details and print your recipe ticket!</p>
             </div>
-            
+
             <form onSubmit={handleParseRecipe} className={styles.inputGroup}>
               <div className={styles.urlInputContainer}>
                 <span className={styles.inputLinkIcon}>🍟</span>
@@ -219,8 +218,8 @@ export default function Home() {
                   autoFocus
                 />
               </div>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className={styles.primaryButton}
                 disabled={loading}
               >
@@ -238,7 +237,7 @@ export default function Home() {
 
             {/* Collapsible Transcript / Description Fallback */}
             <div className={styles.collapsibleArea}>
-              <button 
+              <button
                 type="button"
                 className={styles.collapsibleTrigger}
                 onClick={() => setShowFallback(!showFallback)}
@@ -288,7 +287,7 @@ export default function Home() {
             <h3 className={styles.sidebarTitle}>Order Board</h3>
             <span className={styles.recipeCountBadge}>{recipes.length} ITEMS</span>
           </div>
-          
+
           <div className={styles.recipeList}>
             {recipes.length === 0 ? (
               <div className={styles.emptyState}>
@@ -298,8 +297,8 @@ export default function Home() {
               </div>
             ) : (
               recipes.map((r) => (
-                <div 
-                  key={r.id} 
+                <div
+                  key={r.id}
                   className={`${styles.recipeCardItem} ${activeRecipeId === r.id ? styles.recipeCardActive : ''}`}
                   onClick={() => {
                     setActiveRecipeId(r.id);
@@ -315,7 +314,7 @@ export default function Home() {
                       <span>🏷️ {r.category}</span>
                     </div>
                   </div>
-                  <button 
+                  <button
                     className={styles.deleteButton}
                     onClick={(e) => handleDeleteRecipe(r.id, e)}
                     title="Delete recipe"
@@ -346,28 +345,28 @@ export default function Home() {
                   <h2 className={styles.recipeTitle}>{activeRecipe.title}</h2>
                   {activeRecipe.description && <p className={styles.recipeDescription}>{activeRecipe.description}</p>}
                 </div>
-                
+
                 {/* Servings scale control */}
                 <div className={styles.headerControls}>
                   <div className={styles.servingAdjuster}>
                     <span className={styles.servingLabel}>SIZE:</span>
-                    <button 
-                      className={styles.adjustBtn} 
+                    <button
+                      className={styles.adjustBtn}
                       onClick={() => setAdjustedServings(Math.max(1, adjustedServings - 1))}
                     >
                       —
                     </button>
                     <span className={styles.servingCount}>{adjustedServings}</span>
-                    <button 
-                      className={styles.adjustBtn} 
+                    <button
+                      className={styles.adjustBtn}
                       onClick={() => setAdjustedServings(adjustedServings + 1)}
                     >
                       +
                     </button>
                   </div>
-                  
-                  <button 
-                    onClick={triggerPrint} 
+
+                  <button
+                    onClick={triggerPrint}
                     className={styles.printButton}
                   >
                     🖨️ Print Ticket
@@ -414,13 +413,13 @@ export default function Home() {
               {/* Tab System */}
               <div className={styles.tabsContainer}>
                 <div className={styles.tabs}>
-                  <button 
+                  <button
                     className={`${styles.tab} ${activeTab === 'recipe' ? styles.activeTab : ''}`}
                     onClick={() => setActiveTab('recipe')}
                   >
                     🍔 Meal Board & Video Player
                   </button>
-                  <button 
+                  <button
                     className={`${styles.tab} ${activeTab === 'nutrition' ? styles.activeTab : ''}`}
                     onClick={() => setActiveTab('nutrition')}
                   >
@@ -434,16 +433,16 @@ export default function Home() {
                 {/* Ingredients & Steps */}
                 {activeTab === 'recipe' && (
                   <div className={styles.culinaryGrid}>
-                    
+
                     {/* Left Side: Embedded Video only (No Quick Stats card) */}
                     <div className={styles.leftMediaColumn}>
                       {activeRecipe.videoUrl ? (
                         <div className={styles.videoCard}>
                           <div className={styles.videoCardTab}>NOW PLAYING 🎬</div>
                           <div className={styles.videoPlayerWrapper}>
-                            <video 
-                              src={activeRecipe.videoUrl} 
-                              controls 
+                            <video
+                              src={activeRecipe.videoUrl}
+                              controls
                               playsInline
                               className={styles.videoElement}
                               preload="metadata"
@@ -471,8 +470,8 @@ export default function Home() {
                           {activeRecipe.ingredients?.map((ing, idx) => (
                             <label key={idx} className={`${styles.ingredientItem} ${checkedIngredients[idx] ? styles.ingredientChecked : ''}`} onClick={() => toggleIngredient(idx)}>
                               <div className={styles.checkboxWrapper}>
-                                <input 
-                                  type="checkbox" 
+                                <input
+                                  type="checkbox"
                                   className={styles.checkbox}
                                   checked={!!checkedIngredients[idx]}
                                   readOnly
@@ -517,7 +516,7 @@ export default function Home() {
                       <h4 className={styles.sectionHeading}>Nutrition Facts</h4>
                       <p className={styles.sectionSubtitle}>Estimated values per single serving size.</p>
                     </div>
-                    
+
                     <div className={styles.nutritionGrid}>
                       <div className={`${styles.nutritionCard} ${styles.calCard}`}>
                         <span className={styles.nutritionVal}>{activeRecipe.nutrition?.calories || '—'}</span>
