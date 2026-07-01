@@ -1,4 +1,4 @@
-/* page.module.css - Vanilla CSS for Cheffone */
+/* page.module.css - Playful Fast-Food Theme Styles */
 
 .container {
   max-width: 1280px;
@@ -12,93 +12,58 @@
   animation: fadeIn var(--transition-slow);
 }
 
-/* Zen Brush/Sumi-e Background Elements */
-.brushStrokeBg {
-  position: absolute;
-  top: 5%;
-  left: -100px;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(163, 58, 49, 0.03) 0%, rgba(251, 248, 245, 0) 70%);
-  z-index: -1;
-  pointer-events: none;
-  filter: blur(50px);
-}
-
-.teaCupGlow {
-  position: absolute;
-  bottom: 10%;
-  right: -100px;
-  width: 700px;
-  height: 700px;
-  background: radial-gradient(circle, rgba(74, 107, 83, 0.04) 0%, rgba(251, 248, 245, 0) 70%);
-  z-index: -1;
-  pointer-events: none;
-  filter: blur(60px);
-}
-
 /* Header & Branding */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid var(--card-border);
+  border-bottom: 3px solid var(--text-primary);
   padding-bottom: 1.5rem;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
-/* Traditional Red Lacquer Seal (Hanko) */
-.hankoStamp {
-  background: var(--accent-primary);
-  width: 52px;
-  height: 52px;
-  min-width: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  border: 2px double var(--bg-primary);
-  box-shadow: 0 0 0 2px var(--accent-primary), 0 3px 10px rgba(163, 58, 49, 0.2);
-  font-family: var(--font-serif);
-  font-weight: 900;
-  font-size: 1.85rem;
-  color: #ffffff;
-  transform: rotate(-3deg);
-  user-select: none;
+.fastFoodIcon {
+  font-size: 3rem;
+  filter: drop-shadow(0 2px 4px rgba(80, 35, 20, 0.15));
+  animation: bounce 2s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(4deg); }
 }
 
 .logoText h1 {
   font-family: var(--font-serif);
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   font-weight: 900;
-  letter-spacing: -0.03em;
-  color: var(--text-primary);
-  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--accent-primary);
+  -webkit-text-stroke: 1.5px var(--text-primary);
+  text-shadow: 3px 3px 0 var(--text-primary);
 }
 
 .logoText p {
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.1em;
   margin-top: 0.25rem;
-  font-weight: 600;
+  font-weight: 800;
 }
 
-/* Import Link Input Card */
+/* Import Link Input Card (Neo-Brutalism flat style) */
 .parsePanel {
   background: var(--card-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1.5px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   border-radius: var(--border-radius-lg);
-  padding: 3rem;
-  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.4);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-flat);
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -106,39 +71,52 @@
   overflow: hidden;
 }
 
-.parsePanel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 5px;
-  background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover), var(--success));
-}
-
 .parseHeader {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.stickerBadge {
+  background: var(--accent-yellow);
+  color: var(--text-primary);
+  border: 2px solid var(--text-primary);
+  padding: 0.35rem 0.85rem;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-flat-sm);
+  transform: rotate(-2deg);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
 }
 
 .parseTitle {
   font-family: var(--font-serif);
-  font-size: 1.85rem;
+  font-size: 2.25rem;
   color: var(--text-primary);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 900;
 }
 
 .parseSubtitle {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .inputGroup {
   display: flex;
   gap: 1rem;
   align-items: center;
+}
+
+@media (max-width: 600px) {
+  .inputGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .urlInputContainer {
@@ -151,54 +129,57 @@
 .inputLinkIcon {
   position: absolute;
   left: 1.25rem;
-  color: var(--text-tertiary);
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   pointer-events: none;
 }
 
 .urlInput {
   width: 100%;
   background: var(--bg-primary);
-  border: 1.5px solid var(--card-border);
-  padding: 1.15rem 1.25rem 1.15rem 3rem;
+  border: 3px solid var(--text-primary);
+  padding: 1.15rem 1.25rem 1.15rem 3.25rem;
   border-radius: var(--border-radius-md);
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
   transition: all var(--transition-normal);
 }
 
 .urlInput:focus {
   outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 4px rgba(163, 58, 49, 0.1), inset 0 2px 4px rgba(0,0,0,0.01);
+  background: #ffffff;
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .primaryButton {
-  background: var(--accent-primary);
-  color: #ffffff;
-  border: none;
+  background: var(--accent-yellow);
+  color: var(--text-primary);
+  border: 3px solid var(--text-primary);
   padding: 1.15rem 2.25rem;
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 800;
+  font-size: 1.1rem;
+  font-family: var(--font-serif);
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
   white-space: nowrap;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .primaryButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(163, 58, 49, 0.25);
-  background: var(--accent-hover);
+  background: var(--accent-primary);
+  color: #ffffff;
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-flat);
 }
 
 .primaryButton:active {
-  transform: translateY(0);
+  transform: translate(0, 0);
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .primaryButton:disabled {
@@ -212,8 +193,8 @@
 .spinnerMini {
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #ffffff;
+  border: 2px solid rgba(80,35,20,0.3);
+  border-top-color: var(--text-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -221,8 +202,8 @@
 /* Info banners */
 .infoBanner {
   background: var(--accent-light);
-  border: 1px solid rgba(163, 58, 49, 0.25);
-  color: var(--accent-primary);
+  border: 2px solid var(--text-primary);
+  color: var(--text-primary);
   padding: 1rem 1.25rem;
   border-radius: var(--border-radius-md);
   font-size: 0.9rem;
@@ -230,6 +211,7 @@
   align-items: flex-start;
   gap: 0.75rem;
   line-height: 1.5;
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .infoIcon {
@@ -248,9 +230,9 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 700;
   background: none;
   border: none;
   cursor: pointer;
@@ -277,36 +259,38 @@
 
 .textarea {
   background: var(--bg-primary);
-  border: 1.5px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   padding: 1.25rem;
   border-radius: var(--border-radius-md);
   color: var(--text-primary);
   min-height: 140px;
   resize: vertical;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  font-weight: 600;
   line-height: 1.6;
   transition: all var(--transition-normal);
 }
 
 .textarea:focus {
   outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 4px rgba(163, 58, 49, 0.1);
+  background: #ffffff;
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .textareaTip {
   font-size: 0.85rem;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .errorAlert {
-  color: var(--error);
-  font-weight: 500;
-  background: rgba(185, 28, 28, 0.05);
-  border: 1px solid rgba(185, 28, 28, 0.15);
+  color: #ffffff;
+  font-weight: 800;
+  background: var(--accent-primary);
+  border: 3px solid var(--text-primary);
   padding: 1rem 1.25rem;
   border-radius: var(--border-radius-md);
   font-size: 0.95rem;
+  box-shadow: var(--shadow-flat-sm);
   animation: fadeIn var(--transition-fast);
 }
 
@@ -319,55 +303,58 @@
   padding: 5rem 2rem;
   gap: 1.5rem;
   background: var(--card-bg);
-  border: 1.5px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-flat);
 }
 
 .loaderSpinner {
   width: 70px;
   height: 70px;
-  border: 3px solid var(--card-border);
+  border: 5px solid var(--bg-secondary);
   border-top-color: var(--accent-primary);
-  border-bottom-color: var(--success);
+  border-bottom-color: var(--accent-yellow);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: spin 1.5s cubic-bezier(0.53, 0.21, 0.29, 0.87) infinite;
+  animation: spin 1s linear infinite;
 }
 
 .loaderInnerRing {
   width: 48px;
   height: 48px;
-  border: 2px solid transparent;
-  border-left-color: var(--text-tertiary);
-  border-right-color: var(--text-tertiary);
+  border: 3px solid transparent;
+  border-left-color: var(--success);
+  border-right-color: var(--success);
   border-radius: 50%;
-  animation: spinReverse 1s linear infinite;
+  animation: spinReverse 0.8s linear infinite;
 }
 
 .loaderStatusText {
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.35rem;
+  font-weight: 900;
   color: var(--text-primary);
   font-family: var(--font-serif);
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 0 var(--bg-secondary);
 }
 
 .loaderTip {
-  font-size: 0.95rem;
-  color: var(--text-tertiary);
+  font-size: 1rem;
+  color: var(--text-secondary);
   text-align: center;
   max-width: 450px;
   line-height: 1.6;
+  font-weight: 600;
   font-style: italic;
-  animation: pulseGlow 3s infinite ease-in-out;
+  animation: pulseGlow 2s infinite ease-in-out;
 }
 
 /* App Core Grid Layout */
 .mainLayout {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 330px 1fr;
   gap: 2.5rem;
   align-items: start;
 }
@@ -384,40 +371,42 @@
   flex-direction: column;
   gap: 1.5rem;
   background: var(--card-bg);
-  border: 1.5px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   border-radius: var(--border-radius-lg);
   padding: 1.75rem;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-flat);
 }
 
 .sidebarHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1.5px solid var(--card-border);
+  border-bottom: 3px solid var(--text-primary);
   padding-bottom: 1rem;
 }
 
 .sidebarTitle {
   font-family: var(--font-serif);
-  font-size: 1.35rem;
+  font-size: 1.65rem;
   color: var(--text-primary);
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .recipeCountBadge {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
+  background: var(--accent-primary);
+  color: #ffffff;
+  border: 2px solid var(--text-primary);
   font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.25rem 0.6rem;
-  border-radius: var(--border-radius-full);
+  font-weight: 800;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .recipeList {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
   max-height: 520px;
   overflow-y: auto;
   padding-right: 0.25rem;
@@ -425,7 +414,7 @@
 
 .recipeCardItem {
   background: var(--bg-primary);
-  border: 1px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   padding: 1.15rem;
   border-radius: var(--border-radius-md);
   cursor: pointer;
@@ -437,16 +426,14 @@
 }
 
 .recipeCardItem:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-primary);
-  box-shadow: var(--shadow-sm);
-  background: var(--card-bg);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-flat-sm);
+  background: #ffffff;
 }
 
 .recipeCardActive {
-  border-color: var(--accent-primary);
   background: var(--accent-light);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .recipeCardInfo {
@@ -457,15 +444,16 @@
 }
 
 .recipeCardTitle {
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: 800;
+  font-size: 1.1rem;
   color: var(--text-primary);
-  line-height: 1.4;
+  line-height: 1.3;
   font-family: var(--font-serif);
 }
 
 .recipeCardMeta {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
@@ -473,33 +461,30 @@
 }
 
 .metaDivider {
-  color: var(--card-border);
+  color: var(--text-tertiary);
+  font-weight: bold;
 }
 
 .deleteButton {
-  background: var(--bg-primary);
-  border: 1.5px solid var(--card-border);
-  color: var(--text-tertiary);
+  background: #ffffff;
+  border: 2.5px solid var(--text-primary);
+  color: var(--text-primary);
   cursor: pointer;
   width: 28px;
   height: 28px;
-  border-radius: var(--border-radius-full);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
-  font-weight: bold;
+  font-size: 0.85rem;
+  font-weight: 900;
   transition: all var(--transition-fast);
 }
 
-.recipeCardActive .deleteButton {
-  background: var(--accent-light);
-}
-
 .deleteButton:hover {
-  color: var(--error);
-  border-color: var(--error);
-  background: rgba(185, 28, 28, 0.05);
+  color: #ffffff;
+  background: var(--accent-primary);
+  transform: scale(1.1);
 }
 
 .emptyState {
@@ -507,7 +492,7 @@
   font-size: 0.95rem;
   text-align: center;
   padding: 3rem 1.5rem;
-  border: 2px dashed var(--card-border);
+  border: 3px dashed var(--text-secondary);
   border-radius: var(--border-radius-md);
   display: flex;
   flex-direction: column;
@@ -516,13 +501,14 @@
 }
 
 .emptyIcon {
-  font-size: 2.25rem;
-  opacity: 0.6;
+  font-size: 2.5rem;
+  animation: bounce 3s infinite ease-in-out;
 }
 
 .emptyTextSub {
   font-size: 0.85rem;
   line-height: 1.5;
+  font-weight: 600;
 }
 
 /* Detail Recipe View Card */
@@ -533,12 +519,10 @@
 
 .recipeDetail {
   background: var(--card-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1.5px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   border-radius: var(--border-radius-lg);
-  padding: 3rem;
-  box-shadow: var(--shadow-xl), inset 0 1px 0 rgba(255,255,255,0.4);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-flat);
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
@@ -572,40 +556,44 @@
 }
 
 .categoryBadge {
-  background: var(--accent-light);
-  color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: #ffffff;
+  border: 2px solid var(--text-primary);
   padding: 0.35rem 1rem;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-radius: var(--border-radius-full);
+  letter-spacing: 0.05em;
+  border-radius: var(--border-radius-sm);
   align-self: flex-start;
-  border: 1.5px solid var(--card-border);
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .difficultyBadge {
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  border-color: var(--card-border);
+  background: var(--accent-yellow);
+  color: var(--text-primary);
 }
 
 .recipeTitle {
   font-family: var(--font-serif);
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   line-height: 1.2;
   color: var(--text-primary);
   font-weight: 900;
-  letter-spacing: -0.02em;
+  text-shadow: 2px 2px 0 var(--bg-secondary);
 }
 
 .recipeDescription {
   color: var(--text-secondary);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   line-height: 1.6;
-  border-left: 3px solid var(--accent-primary);
-  padding-left: 1rem;
-  margin-top: 0.5rem;
+  font-weight: 600;
+  background: var(--bg-primary);
+  border-left: 5px solid var(--accent-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+  border: 2px solid var(--text-primary);
+  border-left-width: 6px;
 }
 
 .headerControls {
@@ -630,94 +618,95 @@
   gap: 0.85rem;
   background: var(--bg-secondary);
   padding: 0.5rem 1rem;
-  border-radius: var(--border-radius-full);
-  border: 1.5px solid var(--card-border);
+  border-radius: var(--border-radius-md);
+  border: 3.5px solid var(--text-primary);
 }
 
 .servingLabel {
   font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-secondary);
+  font-weight: 900;
+  color: var(--text-primary);
 }
 
 .servingCount {
-  font-weight: 800;
-  font-size: 1.15rem;
+  font-weight: 900;
+  font-size: 1.25rem;
   width: 25px;
   text-align: center;
   color: var(--accent-primary);
 }
 
 .adjustBtn {
-  background: var(--bg-primary);
-  border: 1.5px solid var(--card-border);
-  width: 30px;
-  height: 30px;
+  background: #ffffff;
+  border: 2.5px solid var(--text-primary);
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-weight: 800;
-  font-size: 1rem;
+  font-weight: 900;
+  font-size: 1.1rem;
   color: var(--text-primary);
   transition: all var(--transition-fast);
 }
 
 .adjustBtn:hover {
-  background: var(--accent-primary);
-  color: #ffffff;
-  border-color: var(--accent-primary);
-  transform: scale(1.05);
+  background: var(--accent-yellow);
+  transform: scale(1.1);
 }
 
 .printButton {
-  background: var(--bg-primary);
-  border: 1.5px solid var(--card-border);
+  background: #ffffff;
+  border: 3px solid var(--text-primary);
   color: var(--text-primary);
   padding: 0.65rem 1.25rem;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 800;
+  font-family: var(--font-serif);
+  font-size: 1rem;
   border-radius: var(--border-radius-md);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  box-shadow: var(--shadow-flat-sm);
   transition: all var(--transition-fast);
 }
 
 .printButton:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-flat);
   background: var(--bg-secondary);
-  border-color: var(--text-secondary);
 }
 
 /* Metadata Chips Dashboard Grid */
 .metadataGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 1.5rem;
   padding: 1.5rem 0;
-  border-top: 1.5px solid var(--card-border);
-  border-bottom: 1.5px solid var(--card-border);
+  border-top: 3px solid var(--text-primary);
+  border-bottom: 3px solid var(--text-primary);
 }
 
 .metaItem {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
 }
 
 .metaIcon {
-  font-size: 1.5rem;
-  width: 42px;
-  height: 42px;
-  border-radius: var(--border-radius-md);
-  background: var(--bg-secondary);
-  border: 1.5px solid var(--card-border);
+  font-size: 1.6rem;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-primary);
+  border: 2.5px solid var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .metaText {
@@ -726,54 +715,51 @@
 }
 
 .metaLabel {
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .metaValue {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1rem;
   color: var(--text-primary);
-  margin-top: 0.15rem;
 }
 
 .metaLink {
   color: var(--accent-primary);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.95rem;
-  text-decoration: none;
-  margin-top: 0.15rem;
+  text-decoration: underline;
 }
 
 .metaLink:hover {
   color: var(--accent-hover);
-  text-decoration: underline;
 }
 
 /* Tab Toggle Slider System */
 .tabsContainer {
   display: flex;
   justify-content: center;
-  border-bottom: 1.5px solid var(--card-border);
+  border-bottom: 3px solid var(--text-primary);
   position: relative;
 }
 
 .tabs {
   display: flex;
-  gap: 2rem;
-  margin-bottom: -1.5px;
+  gap: 2.5rem;
+  margin-bottom: -3px;
 }
 
 .tab {
   background: none;
   border: none;
   padding: 1rem 0.5rem;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-tertiary);
+  font-size: 1.15rem;
+  font-weight: 900;
+  font-family: var(--font-serif);
+  color: var(--text-secondary);
   cursor: pointer;
   position: relative;
   transition: color var(--transition-normal);
@@ -796,9 +782,11 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent-primary), var(--success));
-  border-radius: var(--border-radius-full);
+  height: 4px;
+  background: var(--accent-primary);
+  border: 2px solid var(--text-primary);
+  border-bottom: none;
+  border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
 }
 
 .tabContent {
@@ -808,7 +796,7 @@
 /* Two Column Culinary Layout Grid */
 .culinaryGrid {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 280px 1fr;
   gap: 2.5rem;
 }
 
@@ -833,8 +821,8 @@
 
 .sectionHeading {
   font-family: var(--font-serif);
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 900;
   color: var(--text-primary);
   margin-bottom: 0.25rem;
   position: relative;
@@ -842,21 +830,33 @@
 
 .sectionSubtitle {
   font-size: 0.85rem;
-  color: var(--text-tertiary);
+  font-weight: 700;
+  color: var(--text-secondary);
   margin-bottom: 1.25rem;
-  line-height: 1.4;
 }
 
-/* Integrated Video Player Card (9:16 Aspect ratio styled frame) */
+/* Integrated Video Player Card */
 .videoCard {
   background: var(--bg-secondary);
-  border: 1.5px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   border-radius: var(--border-radius-md);
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-flat-sm);
+}
+
+.videoCardTab {
+  background: var(--text-primary);
+  color: #ffffff;
+  padding: 0.35rem 0.75rem;
+  font-weight: 800;
+  font-size: 0.75rem;
+  border-radius: var(--border-radius-sm);
+  align-self: flex-start;
+  letter-spacing: 0.05em;
+  font-family: var(--font-serif);
 }
 
 .videoPlayerWrapper {
@@ -864,11 +864,10 @@
   aspect-ratio: 9/16;
   max-width: 250px;
   margin: 0 auto;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-sm);
   overflow: hidden;
-  border: 1px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   background: #000000;
-  box-shadow: var(--shadow-md);
 }
 
 .videoElement {
@@ -880,7 +879,7 @@
 /* Fallback Video Card Placeholder */
 .videoCardPlaceholder {
   background: var(--bg-secondary);
-  border: 2px dashed var(--card-border);
+  border: 3px dashed var(--text-secondary);
   border-radius: var(--border-radius-md);
   padding: 3rem 1.5rem;
   text-align: center;
@@ -893,30 +892,33 @@
 
 .placeholderIcon {
   font-size: 2.5rem;
-  opacity: 0.5;
+  animation: bounce 2s infinite ease-in-out;
 }
 
 .placeholderTitle {
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 900;
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
   color: var(--text-primary);
 }
 
 .placeholderSub {
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
 /* Quick Macros Stats Panel */
 .quickMacrosCard {
   background: var(--bg-secondary);
-  border: 1.5px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   border-radius: var(--border-radius-md);
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .quickMacrosGrid {
@@ -929,33 +931,33 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: var(--bg-primary);
-  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  border: 2px solid var(--text-primary);
   border-radius: var(--border-radius-sm);
   padding: 0.6rem 0.25rem;
 }
 
 .macroVal {
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 900;
+  font-size: 1.1rem;
   color: var(--accent-primary);
 }
 
 .macroName {
   font-size: 0.7rem;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
+  font-weight: 800;
   margin-top: 0.15rem;
 }
 
 /* Ingredients Checklist with custom checkbox indicators */
 .ingredientsCard {
   background: var(--bg-secondary);
-  border: 1.5px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   border-radius: var(--border-radius-md);
   padding: 1.5rem;
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .ingredientsList {
@@ -968,23 +970,23 @@
   display: flex;
   align-items: flex-start;
   gap: 0.85rem;
-  padding: 0.75rem 0.85rem;
+  padding: 0.85rem;
   border-radius: var(--border-radius-sm);
-  border: 1.5px solid var(--card-border);
-  background: var(--bg-primary);
+  border: 2.5px solid var(--text-primary);
+  background: var(--card-bg);
   transition: all var(--transition-normal);
   cursor: pointer;
 }
 
 .ingredientItem:hover {
-  background: var(--bg-secondary);
-  border-color: var(--text-tertiary);
+  background: var(--bg-primary);
+  transform: translate(-1px, -1px);
 }
 
 .checkboxWrapper {
   position: relative;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1000,11 +1002,11 @@
 }
 
 .customCheckbox {
-  width: 20px;
-  height: 20px;
-  background: var(--bg-primary);
-  border: 1.5px solid var(--text-tertiary);
-  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  background: #ffffff;
+  border: 2.5px solid var(--text-primary);
+  border-radius: 6px;
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
@@ -1012,23 +1014,21 @@
 }
 
 .checkboxWrapper:hover .customCheckbox {
-  border-color: var(--accent-primary);
+  background: var(--bg-secondary);
 }
 
 .checkbox:checked ~ .customCheckbox {
-  background: var(--accent-primary);
-  border-color: var(--accent-primary);
+  background: var(--success);
 }
 
 .customCheckbox::after {
   content: '';
   width: 5px;
-  height: 8px;
+  height: 9px;
   border: solid white;
-  border-width: 0 2px 2px 0;
+  border-width: 0 3px 3px 0;
   transform: rotate(45deg);
   opacity: 0;
-  transition: opacity var(--transition-fast);
 }
 
 .checkbox:checked ~ .customCheckbox::after {
@@ -1037,37 +1037,38 @@
 
 .ingredientText {
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: 1rem;
+  font-weight: 600;
   line-height: 1.5;
   flex: 1;
-  transition: color var(--transition-fast);
 }
 
 .quantityHighlight {
   color: var(--accent-primary);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .ingredientChecked {
-  opacity: 0.65;
+  opacity: 0.6;
   background: var(--bg-secondary);
 }
 
 .ingredientChecked .ingredientText {
   text-decoration: line-through;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 .ingredientChecked .quantityHighlight {
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 /* Step Timeline Design Layout */
 .instructionsCard {
   background: var(--bg-secondary);
-  border: 1.5px solid var(--card-border);
+  border: 3px solid var(--text-primary);
   border-radius: var(--border-radius-md);
   padding: 1.5rem;
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .instructionsList {
@@ -1088,20 +1089,20 @@
 }
 
 .stepNumber {
-  background: var(--bg-primary);
-  border: 2px solid var(--accent-primary);
-  color: var(--accent-primary);
+  background: var(--accent-yellow);
+  border: 2.5px solid var(--text-primary);
+  color: var(--text-primary);
   font-family: var(--font-serif);
-  font-weight: 800;
-  font-size: 1.1rem;
-  width: 34px;
-  height: 34px;
-  min-width: 34px;
+  font-weight: 900;
+  font-size: 1.25rem;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-flat-sm);
   transition: all var(--transition-normal);
 }
 
@@ -1111,22 +1112,19 @@
 }
 
 .stepConnector {
-  width: 2px;
+  width: 3px;
   flex: 1;
-  border-left: 2px dashed var(--card-border);
+  background: var(--text-primary);
   margin-top: 0.5rem;
 }
 
 .stepContent {
-  color: var(--text-secondary);
-  line-height: 1.7;
-  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.6;
+  font-size: 1.05rem;
   padding-top: 0.25rem;
   flex: 1;
-}
-
-.stepCard:hover .stepContent {
-  color: var(--text-primary);
 }
 
 /* Detailed Nutrition Panels */
@@ -1149,8 +1147,8 @@
 }
 
 .nutritionCard {
-  background: var(--bg-secondary);
-  border: 1.5px solid var(--card-border);
+  background: #ffffff;
+  border: 3px solid var(--text-primary);
   padding: 1.75rem 1.5rem;
   border-radius: var(--border-radius-md);
   text-align: center;
@@ -1159,30 +1157,29 @@
   gap: 0.5rem;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.6);
+  box-shadow: var(--shadow-flat-sm);
   transition: all var(--transition-normal);
 }
 
 .nutritionCard:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--text-secondary);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-flat);
 }
 
 .nutritionVal {
-  font-size: 2.25rem;
-  font-weight: 800;
+  font-size: 2.5rem;
+  font-weight: 900;
   color: var(--text-primary);
   font-family: var(--font-serif);
   line-height: 1;
 }
 
 .nutritionLabel {
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.05em;
 }
 
 .macroIndicator {
@@ -1190,20 +1187,23 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 6px;
+  border-top: 2px solid var(--text-primary);
 }
 
 .nutritionDisclaimer {
   background: var(--bg-secondary);
-  border: 1px solid var(--card-border);
+  border: 3.5px solid var(--text-primary);
   border-radius: var(--border-radius-md);
   padding: 1.25rem;
-  font-size: 0.85rem;
-  color: var(--text-tertiary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
   line-height: 1.6;
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .disclaimerIcon {
@@ -1213,7 +1213,7 @@
 /* Empty Detail State */
 .emptyDetailState {
   background: var(--card-bg);
-  border: 2px dashed var(--card-border);
+  border: 3px dashed var(--text-secondary);
   border-radius: var(--border-radius-lg);
   padding: 6rem 2rem;
   display: flex;
@@ -1222,24 +1222,24 @@
   justify-content: center;
   text-align: center;
   gap: 1rem;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-flat-sm);
 }
 
 .emptyStateIcon {
-  font-size: 4rem;
-  opacity: 0.5;
-  animation: pulseGlow 3s infinite ease-in-out;
+  font-size: 4.5rem;
+  animation: bounce 3s infinite ease-in-out;
 }
 
 .emptyDetailState h3 {
   font-family: var(--font-serif);
-  font-size: 1.75rem;
+  font-size: 1.85rem;
   color: var(--text-primary);
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .emptyDetailState p {
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
+  font-weight: 600;
   max-width: 400px;
   font-size: 1rem;
   line-height: 1.5;
@@ -1260,7 +1260,7 @@
     background: #ffffff !important;
     color: #000000 !important;
   }
-  .parsePanel, .header, .sidebar, .tabsContainer, .servingAdjuster, .printButton, .brushStrokeBg, .teaCupGlow {
+  .parsePanel, .header, .sidebar, .tabsContainer, .servingAdjuster, .printButton {
     display: none !important;
   }
   .mainLayout {
@@ -1280,7 +1280,7 @@
     display: block !important;
   }
   .ingredientItem {
-    border-color: #e5e7eb !important;
+    border-color: #000000 !important;
     background: #ffffff !important;
   }
   .stepNumber {

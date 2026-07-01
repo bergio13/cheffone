@@ -1,61 +1,61 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --font-serif: 'Noto Serif JP', 'Playfair Display', Georgia, serif;
+  --font-serif: 'Lilita One', cursive, sans-serif; /* Bubbly, appetizing fast-food brand font */
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
-  /* Traditional East Asian Color Palette (Cinnabar Red, Sumi Ink, Matcha Green, Rice Paper) */
-  --bg-primary: #fbfaf7;         /* Warm rice paper white */
-  --bg-secondary: #f5f1e8;       /* Bamboo sand / tea wood */
-  --bg-tertiary: #e9e2d4;        /* Washed ginger brown */
-  --card-bg: rgba(255, 255, 255, 0.9);
-  --card-border: rgba(163, 58, 49, 0.12); /* Lacquer Red tint */
-  --text-primary: #1c1a18;       /* Calligraphy Sumi Ink black */
-  --text-secondary: #4d4640;     /* Wet charcoal */
-  --text-tertiary: #8f857a;      /* Bamboo sheath gray */
+  /* Playful, Appetite-Stimulating Fast Food Color Palette (Ketchup Red, Mustard Yellow, Grill Brown, Potato Bun Cream) */
+  --bg-primary: #fdf9f4;         /* Buttery bun parchment paper white */
+  --bg-secondary: #f6efe5;       /* Warm potato basket kraft paper */
+  --bg-tertiary: #e7dac9;        /* Cardboard bag brown */
+  --card-bg: #ffffff;
+  --card-border: #502314;        /* BK Grill Brown for thick outlines */
+  --text-primary: #502314;       /* Deep flame-broiled brown */
+  --text-secondary: #70473a;     /* Smoked brown */
+  --text-tertiary: #9c7b70;      /* Toast brown */
   
-  --accent-primary: #a33a31;     /* Cinnabar lacquer red */
-  --accent-hover: #822a22;
-  --accent-light: #fdf2f0;       /* Cherry blossom tint */
-  --success: #4a6b53;            /* Matcha green */
-  --error: #b91c1c;
+  --accent-primary: #da291c;     /* Classic Ketchup Red */
+  --accent-hover: #b81d12;
+  --accent-light: #fbeee9;       /* Soft strawberry milkshake tint */
+  --accent-yellow: #ffbc0d;      /* Golden Arches / Cheddar Cheese Yellow */
+  --success: #00a859;            /* Pickle / Lettuce Green */
+  --error: #da291c;
 
-  --shadow-sm: 0 1px 2px 0 rgba(28, 26, 24, 0.02);
-  --shadow-md: 0 4px 10px -1px rgba(28, 26, 24, 0.04), 0 2px 6px -2px rgba(28, 26, 24, 0.04);
-  --shadow-lg: 0 12px 20px -3px rgba(28, 26, 24, 0.06), 0 6px 8px -4px rgba(28, 26, 24, 0.06);
-  --shadow-xl: 0 24px 36px -5px rgba(28, 26, 24, 0.08), 0 12px 16px -6px rgba(28, 26, 24, 0.08);
-  --glass-blur: 14px;
-
+  /* Tactile Retro/Sticker Flat Shadows (Neo-Brutalism style common in modern fast-food branding) */
+  --shadow-flat: 4px 4px 0px #502314;
+  --shadow-flat-sm: 2px 2px 0px #502314;
+  --shadow-flat-lg: 6px 6px 0px #502314;
+  
   --border-radius-sm: 6px;
-  --border-radius-md: 12px;
-  --border-radius-lg: 20px;
+  --border-radius-md: 16px;
+  --border-radius-lg: 24px;
   --border-radius-full: 9999px;
 
-  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --transition-normal: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --transition-slow: 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-primary: #0f0e0d;        /* Deep Sumi calligraphy ink */
-    --bg-secondary: #1a1817;      /* Dark tea bark brown */
-    --bg-tertiary: #2b2725;       /* Charred bamboo gray */
-    --card-bg: rgba(26, 24, 23, 0.85);
-    --card-border: rgba(224, 86, 72, 0.18);
-    --text-primary: #f5f2eb;      /* Unbleached silk white */
-    --text-secondary: #d4cbbd;    /* Toasted sesame tint */
-    --text-tertiary: #9e9486;     /* Dry lotus root gray */
+    --bg-primary: #120907;        /* Charcoal grill black */
+    --bg-secondary: #221411;      /* Flame-smoke brown */
+    --bg-tertiary: #38211c;
+    --card-bg: #1f120f;
+    --card-border: #fdf9f4;
+    --text-primary: #fdf9f4;
+    --text-secondary: #e7dac9;
+    --text-tertiary: #b09c95;
     
-    --accent-primary: #e05648;    /* Vibrant lacquer red stamp */
-    --accent-hover: #eb7163;
-    --accent-light: #2e1412;      /* Deep mahogany / cinnabar wine */
-    --success: #5f8575;           /* Matcha bamboo forest green */
+    --accent-primary: #ff4a3b;    /* Bright Neon Ketchup */
+    --accent-hover: #ff7063;
+    --accent-light: #30100a;
+    --accent-yellow: #ffc72c;
+    --success: #10b981;
     
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
+    --shadow-flat: 4px 4px 0px #fdf9f4;
+    --shadow-flat-sm: 2px 2px 0px #fdf9f4;
+    --shadow-flat-lg: 6px 6px 0px #fdf9f4;
   }
 }
 
@@ -106,13 +106,15 @@ input, button, textarea {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-secondary);
+  border-left: 2px solid var(--card-border);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--text-tertiary);
+  background: var(--text-primary);
+  border: 2px solid var(--bg-secondary);
   border-radius: var(--border-radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
