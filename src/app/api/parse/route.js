@@ -68,6 +68,12 @@ async function extractMetadata(url) {
         const fetchUrl = cleanEndpoint.endsWith('=') || cleanEndpoint.endsWith('?') ? `${cleanEndpoint}${encodeURIComponent(url)}` : `${cleanEndpoint}?url=${encodeURIComponent(url)}`;
         const host = new URL(cleanEndpoint).hostname;
 
+        console.log(`RapidAPI Request URL: ${fetchUrl}`);
+        console.log(`RapidAPI Headers:`, {
+          'x-rapidapi-key': rapidApiKey ? `${rapidApiKey.substring(0, 5)}...` : 'undefined',
+          'x-rapidapi-host': host
+        });
+
         const response = await fetch(fetchUrl, {
           headers: {
             'x-rapidapi-key': rapidApiKey,
