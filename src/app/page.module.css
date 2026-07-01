@@ -1474,3 +1474,223 @@
     justify-content: center;
   }
 }
+
+/* ─── Auth & Header Actions ──────────────────────────────────────────────── */
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* "Sync Recipes" button for anonymous users */
+.syncButton {
+  background: transparent;
+  border: 2px solid var(--text-primary);
+  border-radius: var(--border-radius-sm);
+  padding: 0.6rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: background var(--transition-base), transform var(--transition-base);
+  letter-spacing: 0.03em;
+}
+.syncButton:hover {
+  background: var(--accent-yellow);
+  transform: translateY(-1px);
+}
+
+/* User avatar chip */
+.userChipWrapper {
+  position: relative;
+}
+.userChip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--card-bg);
+  border: 2px solid var(--text-primary);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem 0.35rem 0.4rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+  box-shadow: var(--shadow-flat-sm);
+}
+.userChip:hover {
+  box-shadow: var(--shadow-flat);
+  transform: translateY(-1px);
+}
+.userAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--text-primary);
+  object-fit: cover;
+}
+.userInitials {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--text-primary);
+}
+.userName {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.syncDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  animation: pulse 1.2s infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+
+/* User dropdown menu */
+.userMenu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--card-bg);
+  border: 2px solid var(--text-primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-flat);
+  min-width: 180px;
+  z-index: 200;
+  overflow: hidden;
+  animation: fadeIn 0.15s ease;
+}
+.userMenuEmail {
+  padding: 0.65rem 1rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  word-break: break-all;
+}
+.userMenuSignOut {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: background var(--transition-base);
+}
+.userMenuSignOut:hover {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+/* ─── Auth Modal Form ─────────────────────────────────────────────────────── */
+
+.googleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.8rem 1.5rem;
+  background: #fff;
+  color: #1a1a1a;
+  border: 2px solid var(--text-primary);
+  border-radius: var(--border-radius-sm);
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-flat-sm);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+.googleButton:hover:not(:disabled) {
+  box-shadow: var(--shadow-flat);
+  transform: translateY(-1px);
+}
+.googleButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.authDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.authDivider::before,
+.authDivider::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: rgba(0,0,0,0.12);
+  border-radius: 2px;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.authInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-primary);
+  border: 2px solid var(--text-primary);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: box-shadow var(--transition-base);
+  box-sizing: border-box;
+}
+.authInput:focus {
+  outline: none;
+  box-shadow: 3px 3px 0 var(--accent-primary);
+}
+.authInput::placeholder {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.authToggle {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+.authToggle button {
+  background: none;
+  border: none;
+  color: var(--accent-primary);
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+}
+.authToggle button:hover {
+  color: var(--text-primary);
+}
