@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 
-// Loader tips to rotate while parsing
+// Professional loader tips to rotate while parsing
 const LOADER_TIPS = [
   "Translating video speech into ingredients...",
   "Estimating nutritional values from the recipe...",
-  "Drawing hand-drawn SVGs of the ingredients...",
-  "Creating standard steps and instructions...",
-  "Polishing the final culinary presentation sketches...",
-  "Consulting the virtual chef for serving ratios..."
+  "Structuring culinary steps and prep tasks...",
+  "Analyzing visual cues for exact cooking times...",
+  "Polishing instructions for restaurant-grade clarity...",
+  "Consulting the virtual chef for portion ratios..."
 ];
 
 export default function Home() {
@@ -20,7 +20,7 @@ export default function Home() {
   const [recipes, setRecipes] = useState([]);
   const [activeRecipeId, setActiveRecipeId] = useState(null);
   
-  const [activeTab, setActiveTab] = useState('recipe'); // 'recipe', 'nutrition', 'sketches'
+  const [activeTab, setActiveTab] = useState('recipe'); // 'recipe', 'nutrition'
   const [adjustedServings, setAdjustedServings] = useState(2);
   const [checkedIngredients, setCheckedIngredients] = useState({});
 
@@ -30,7 +30,6 @@ export default function Home() {
 
   // Load Saved Recipes on mount
   useEffect(() => {
-
     const savedRecipes = localStorage.getItem('cheffone_recipes');
     if (savedRecipes) {
       try {
@@ -46,12 +45,11 @@ export default function Home() {
     }
   }, []);
 
-  // Save recipes to localStorage when state changes
+  // Save recipes to localStorage
   const saveRecipesToStorage = (newRecipes) => {
     setRecipes(newRecipes);
     localStorage.setItem('cheffone_recipes', JSON.stringify(newRecipes));
   };
-
 
   // Rotate loader tips
   useEffect(() => {
@@ -94,7 +92,6 @@ export default function Home() {
         throw new Error(data.error || 'Failed to parse recipe. Please check your URL or API key.');
       }
 
-      console.log('Client received data:', data);
       const parsedRecipe = data.recipe;
       if (!parsedRecipe) {
         throw new Error('API returned successfully but no recipe data was parsed.');
@@ -106,7 +103,6 @@ export default function Home() {
         parsedAt: new Date().toLocaleDateString(),
       };
 
-      console.log('Adding new recipe to state:', newRecipe);
       const updatedRecipes = [newRecipe, ...recipes];
       saveRecipesToStorage(updatedRecipes);
       setActiveRecipeId(newRecipe.id);
@@ -148,7 +144,6 @@ export default function Home() {
     if (quantity === null || quantity === undefined) return '';
     const ratio = adjustedServings / (originalServings || 2);
     const scaled = quantity * ratio;
-    // Clean rounding up to 2 decimal places
     return Math.round(scaled * 100) / 100;
   };
 
@@ -160,97 +155,110 @@ export default function Home() {
     }));
   };
 
-  // Helper to clean SVGs from Gemini markdown wrapping if any
-  const cleanSvg = (svgString) => {
-    if (!svgString) return '';
-    let cleaned = svgString.trim();
-    if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```[a-z]*\n/i, '').replace(/\n```$/, '');
-    }
-    return cleaned;
-  };
-
   const triggerPrint = () => {
     window.print();
   };
 
   return (
     <div className={styles.container}>
+      {/* Decorative Glow Elements */}
+      <div className={styles.ambientGlow1}></div>
+      <div className={styles.ambientGlow2}></div>
+
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.logo}>
-          <span className={styles.logoIcon}>🍳</span>
+          <span className={styles.logoIcon}>⚜️</span>
           <div className={styles.logoText}>
             <h1>Cheffone</h1>
-            <p>Video-to-Recipe AI Assistant</p>
+            <p>Smart Video-to-Recipe Planner</p>
           </div>
         </div>
       </header>
 
       {/* Parser Box */}
       <section className={styles.parsePanel}>
-        <h2 className={styles.parseTitle}>Paste Video Link</h2>
+        <div className={styles.parseHeader}>
+          <h2 className={styles.parseTitle}>Import New Recipe</h2>
+          <p className={styles.parseSubtitle}>Paste a TikTok or Instagram link to automatically parse the video details</p>
+        </div>
         
         <form onSubmit={handleParseRecipe} className={styles.inputGroup}>
-          <input
-            type="url"
-            className={styles.urlInput}
-            placeholder="Paste TikTok or Instagram recipe URL here..."
-            value={url}
-            onChange={(e) => {
-              const val = e.target.value;
-              setUrl(val);
-              if (val.includes('instagram.com')) {
-                setShowFallback(true);
-              }
-            }}
-          />
+          <div className={styles.urlInputContainer}>
+            <span className={styles.inputLinkIcon}>🔗</span>
+            <input
+              type="url"
+              className={styles.urlInput}
+              placeholder="Paste video URL (TikTok, Reels, etc.)..."
+              value={url}
+              onChange={(e) => {
+                const val = e.target.value;
+                setUrl(val);
+                if (val.includes('instagram.com')) {
+                  setShowFallback(true);
+                }
+              }}
+            />
+          </div>
           <button 
             type="submit" 
             className={styles.primaryButton}
             disabled={loading}
           >
-            {loading ? "Generating..." : "Get Recipe ✨"}
+            {loading ? (
+              <>
+                <span className={styles.spinnerMini}></span>
+                Analyzing...
+              </>
+            ) : (
+              "Generate Card ✨"
+            )}
           </button>
         </form>
 
         {url.includes('instagram.com') && (
-          <div style={{ color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: '600', animation: 'fadeIn 0.2s' }}>
-            💡 Instagram links cannot be read automatically due to platform security. Please copy the caption/ingredients from the post and paste it below!
+          <div className={styles.infoBanner}>
+            <span className={styles.infoIcon}>💡</span>
+            <span>Instagram links cannot be read automatically without a RapidAPI key. If not configured, copy the caption text and paste it below!</span>
           </div>
         )}
 
         {/* Collapsible Transcript / Description Fallback */}
-        <button 
-          type="button"
-          className={styles.collapsibleTrigger}
-          onClick={() => setShowFallback(!showFallback)}
-        >
-          {showFallback ? "▼ Hide transcript options" : "▶ Can't scrape? Paste caption/transcript manually"}
-        </button>
+        <div className={styles.collapsibleArea}>
+          <button 
+            type="button"
+            className={styles.collapsibleTrigger}
+            onClick={() => setShowFallback(!showFallback)}
+          >
+            <span className={styles.triggerIcon}>{showFallback ? "▼" : "▶"}</span>
+            <span>Can't scrape? Paste caption/transcript manually</span>
+          </button>
 
-        {showFallback && (
-          <div className={styles.collapsibleContent}>
-            <textarea
-              className={styles.textarea}
-              placeholder="Paste the video caption description, comments, transcript, or raw text ingredients list here to parse..."
-              value={rawText}
-              onChange={(e) => setRawText(e.target.value)}
-            />
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
-              Tip: Copy the caption directly from the TikTok or Instagram post and paste it here.
-            </span>
-          </div>
-        )}
+          {showFallback && (
+            <div className={styles.collapsibleContent}>
+              <textarea
+                className={styles.textarea}
+                placeholder="Paste the video caption, comments, transcript, or raw text ingredients list here to parse..."
+                value={rawText}
+                onChange={(e) => setRawText(e.target.value)}
+              />
+              <span className={styles.textareaTip}>
+                Tip: Copy the caption directly from the TikTok/Instagram post and paste it here.
+              </span>
+            </div>
+          )}
+        </div>
 
-        {error && <div style={{ color: 'var(--error)', fontSize: '0.9rem', marginTop: '0.5rem', fontWeight: '500' }}>⚠️ {error}</div>}
+        {error && <div className={styles.errorAlert}>⚠️ {error}</div>}
       </section>
 
       {/* Loading Block */}
       {loading && (
         <div className={styles.loaderContainer}>
-          <div className={styles.loaderSpinner}></div>
-          <p style={{ fontWeight: '600' }}>Crafting your recipe card...</p>
+          <div className={styles.loaderSpinner}>
+            <div className={styles.loaderInnerRing}></div>
+          </div>
+          <p className={styles.loaderStatusText}>Crafting your culinary card...</p>
           <div className={styles.loaderTip}>{LOADER_TIPS[loaderTipIndex]}</div>
         </div>
       )}
@@ -260,12 +268,17 @@ export default function Home() {
         <main className={styles.mainLayout}>
           {/* Sidebar - Saved Recipes */}
           <aside className={styles.sidebar}>
-            <h3 className={styles.sidebarTitle}>Saved Recipes</h3>
+            <div className={styles.sidebarHeader}>
+              <h3 className={styles.sidebarTitle}>Culinary Book</h3>
+              <span className={styles.recipeCountBadge}>{recipes.length} Saved</span>
+            </div>
+            
             <div className={styles.recipeList}>
               {recipes.length === 0 ? (
                 <div className={styles.emptyState}>
+                  <span className={styles.emptyIcon}>📖</span>
                   <p>No recipes saved yet.</p>
-                  <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Paste a link or write a transcript to parse your first recipe card!</p>
+                  <p className={styles.emptyTextSub}>Paste a link to parse your first recipe card!</p>
                 </div>
               ) : (
                 recipes.map((r) => (
@@ -281,7 +294,8 @@ export default function Home() {
                     <div className={styles.recipeCardInfo}>
                       <span className={styles.recipeCardTitle}>{r.title}</span>
                       <div className={styles.recipeCardMeta}>
-                        <span>⏱️ {r.prepTime}</span>
+                        <span>⏱️ {r.prepTime || 'N/A'}</span>
+                        <span className={styles.metaDivider}>•</span>
                         <span>🏷️ {r.category}</span>
                       </div>
                     </div>
@@ -290,7 +304,7 @@ export default function Home() {
                       onClick={(e) => handleDeleteRecipe(r.id, e)}
                       title="Delete recipe"
                     >
-                      🗑️
+                      ✕
                     </button>
                   </div>
                 ))
@@ -299,7 +313,7 @@ export default function Home() {
           </aside>
 
           {/* Active Recipe Panel */}
-          <section style={{ flex: 1 }}>
+          <section className={styles.recipeDetailContainer}>
             {activeRecipe ? (
               <div className={styles.recipeDetail}>
                 {/* Header details */}
@@ -311,16 +325,16 @@ export default function Home() {
                   </div>
                   
                   {/* Servings scale control */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
+                  <div className={styles.headerControls}>
                     <div className={styles.servingAdjuster}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Servings:</span>
+                      <span className={styles.servingLabel}>Servings:</span>
                       <button 
                         className={styles.adjustBtn} 
                         onClick={() => setAdjustedServings(Math.max(1, adjustedServings - 1))}
                       >
-                        -
+                        —
                       </button>
-                      <span style={{ fontWeight: 'bold', width: '20px', textAlign: 'center' }}>{adjustedServings}</span>
+                      <span className={styles.servingCount}>{adjustedServings}</span>
                       <button 
                         className={styles.adjustBtn} 
                         onClick={() => setAdjustedServings(adjustedServings + 1)}
@@ -331,8 +345,7 @@ export default function Home() {
                     
                     <button 
                       onClick={triggerPrint} 
-                      className={styles.keyAlertButton}
-                      style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--card-border)' }}
+                      className={styles.printButton}
                     >
                       🖨️ Print Card
                     </button>
@@ -342,67 +355,82 @@ export default function Home() {
                 {/* Metadata Grid */}
                 <div className={styles.metadataGrid}>
                   <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Prep Time:</span>
-                    <span className={styles.metaValue}>{activeRecipe.prepTime || 'N/A'}</span>
+                    <span className={styles.metaIcon}>⏱️</span>
+                    <div className={styles.metaText}>
+                      <span className={styles.metaLabel}>Prep Time</span>
+                      <span className={styles.metaValue}>{activeRecipe.prepTime || 'N/A'}</span>
+                    </div>
                   </div>
                   <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Cook Time:</span>
-                    <span className={styles.metaValue}>{activeRecipe.cookTime || 'N/A'}</span>
+                    <span className={styles.metaIcon}>🔥</span>
+                    <div className={styles.metaText}>
+                      <span className={styles.metaLabel}>Cook Time</span>
+                      <span className={styles.metaValue}>{activeRecipe.cookTime || 'N/A'}</span>
+                    </div>
                   </div>
                   <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Difficulty:</span>
-                    <span className={styles.metaValue}>{activeRecipe.difficulty || 'Easy'}</span>
+                    <span className={styles.metaIcon}>📈</span>
+                    <div className={styles.metaText}>
+                      <span className={styles.metaLabel}>Difficulty</span>
+                      <span className={styles.metaValue}>{activeRecipe.difficulty || 'Easy'}</span>
+                    </div>
                   </div>
                   {activeRecipe.sourceUrl && (
                     <div className={styles.metaItem}>
-                      <a href={activeRecipe.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)', fontWeight: '600', textDecoration: 'underline' }}>
-                        🔗 Original Video Source
-                      </a>
+                      <span className={styles.metaIcon}>🎬</span>
+                      <div className={styles.metaText}>
+                        <span className={styles.metaLabel}>Source</span>
+                        <a href={activeRecipe.sourceUrl} target="_blank" rel="noopener noreferrer" className={styles.metaLink}>
+                          View Video
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Tabs */}
-                <div className={styles.tabs}>
-                  <button 
-                    className={`${styles.tab} ${activeTab === 'recipe' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('recipe')}
-                  >
-                    Ingredients & Steps
-                  </button>
-                  <button 
-                    className={`${styles.tab} ${activeTab === 'nutrition' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('nutrition')}
-                  >
-                    Nutritional Facts
-                  </button>
-                  <button 
-                    className={`${styles.tab} ${activeTab === 'sketches' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('sketches')}
-                  >
-                    Cooking Sketches (3D Stage Art)
-                  </button>
+                {/* Tab System */}
+                <div className={styles.tabsContainer}>
+                  <div className={styles.tabs}>
+                    <button 
+                      className={`${styles.tab} ${activeTab === 'recipe' ? styles.activeTab : ''}`}
+                      onClick={() => setActiveTab('recipe')}
+                    >
+                      🧑‍🍳 Ingredients & Instructions
+                    </button>
+                    <button 
+                      className={`${styles.tab} ${activeTab === 'nutrition' ? styles.activeTab : ''}`}
+                      onClick={() => setActiveTab('nutrition')}
+                    >
+                      📊 Nutritional Breakdown
+                    </button>
+                  </div>
                 </div>
 
                 {/* Tab content */}
                 <div className={styles.tabContent}>
                   {/* Ingredients & Steps */}
                   {activeTab === 'recipe' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', flexWrap: 'wrap' }}>
+                    <div className={styles.culinaryGrid}>
                       {/* Left: Ingredients */}
-                      <div>
-                        <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', marginBottom: '1rem', borderBottom: '1px solid var(--card-border)', paddingBottom: '0.25rem' }}>Ingredients</h4>
+                      <div className={styles.ingredientsCard}>
+                        <h4 className={styles.sectionHeading}>Ingredients Checklist</h4>
+                        <p className={styles.sectionSubtitle}>Scale servings above to adjust amounts. Check items as you prep.</p>
                         <div className={styles.ingredientsList}>
                           {activeRecipe.ingredients?.map((ing, idx) => (
-                            <label key={idx} className={styles.ingredientItem} onClick={() => toggleIngredient(idx)}>
-                              <input 
-                                type="checkbox" 
-                                className={styles.checkbox}
-                                checked={!!checkedIngredients[idx]}
-                                readOnly
-                              />
-                              <span className={`${styles.ingredientText} ${checkedIngredients[idx] ? styles.checkedText : ''}`}>
-                                <strong>{scaleQuantity(ing.quantity, activeRecipe.servings)} {ing.unit}</strong> {ing.name}
+                            <label key={idx} className={`${styles.ingredientItem} ${checkedIngredients[idx] ? styles.ingredientChecked : ''}`} onClick={() => toggleIngredient(idx)}>
+                              <div className={styles.checkboxWrapper}>
+                                <input 
+                                  type="checkbox" 
+                                  className={styles.checkbox}
+                                  checked={!!checkedIngredients[idx]}
+                                  readOnly
+                                />
+                                <span className={styles.customCheckbox}></span>
+                              </div>
+                              <span className={styles.ingredientText}>
+                                <strong className={styles.quantityHighlight}>
+                                  {scaleQuantity(ing.quantity, activeRecipe.servings)} {ing.unit}
+                                </strong> {ing.name}
                               </span>
                             </label>
                           ))}
@@ -410,13 +438,18 @@ export default function Home() {
                       </div>
 
                       {/* Right: Instructions */}
-                      <div>
-                        <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', marginBottom: '1rem', borderBottom: '1px solid var(--card-border)', paddingBottom: '0.25rem' }}>Instructions</h4>
+                      <div className={styles.instructionsCard}>
+                        <h4 className={styles.sectionHeading}>Step-by-Step Method</h4>
                         <div className={styles.instructionsList}>
                           {activeRecipe.instructions?.map((step, idx) => (
                             <div key={idx} className={styles.stepCard}>
-                              <div className={styles.stepNumber}>{idx + 1}</div>
-                              <div className={styles.stepContent}>{step}</div>
+                              <div className={styles.stepIndicator}>
+                                <div className={styles.stepNumber}>{idx + 1}</div>
+                                {idx < activeRecipe.instructions.length - 1 && <div className={styles.stepConnector}></div>}
+                              </div>
+                              <div className={styles.stepContent}>
+                                <p>{step}</p>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -426,100 +459,60 @@ export default function Home() {
 
                   {/* Nutrition */}
                   {activeTab === 'nutrition' && (
-                    <div>
-                      <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', marginBottom: '1rem' }}>Nutrition Estimations (per serving)</h4>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', marginBottom: '1.5rem', fontStyle: 'italic' }}>
-                        *Calculated using Gemini AI based on the ingredients list. Subject to variation.
-                      </p>
+                    <div className={styles.nutritionContainer}>
+                      <div className={styles.nutritionHeader}>
+                        <h4 className={styles.sectionHeading}>Visual Nutrition Profile</h4>
+                        <p className={styles.sectionSubtitle}>Estimated values per single serving based on recipe constituents.</p>
+                      </div>
+                      
                       <div className={styles.nutritionGrid}>
-                        <div className={styles.nutritionCard}>
+                        <div className={`${styles.nutritionCard} ${styles.calCard}`}>
                           <span className={styles.nutritionVal}>{activeRecipe.nutrition?.calories || '—'}</span>
                           <span className={styles.nutritionLabel}>Calories</span>
+                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #d97706, #fb923c)' }}></div>
                         </div>
-                        <div className={styles.nutritionCard}>
+                        <div className={`${styles.nutritionCard} ${styles.protCard}`}>
                           <span className={styles.nutritionVal}>{activeRecipe.nutrition?.protein || '—'}</span>
                           <span className={styles.nutritionLabel}>Protein</span>
+                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #10b981, #34d399)' }}></div>
                         </div>
-                        <div className={styles.nutritionCard}>
+                        <div className={`${styles.nutritionCard} ${styles.carbCard}`}>
                           <span className={styles.nutritionVal}>{activeRecipe.nutrition?.carbs || '—'}</span>
-                          <span className={styles.nutritionLabel}>Carbohydrates</span>
+                          <span className={styles.nutritionLabel}>Carbs</span>
+                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #f59e0b, #fbbf24)' }}></div>
                         </div>
-                        <div className={styles.nutritionCard}>
+                        <div className={`${styles.nutritionCard} ${styles.fatCard}`}>
                           <span className={styles.nutritionVal}>{activeRecipe.nutrition?.fat || '—'}</span>
                           <span className={styles.nutritionLabel}>Fat</span>
+                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #ec4899, #f472b6)' }}></div>
                         </div>
                         {activeRecipe.nutrition?.fiber && (
-                          <div className={styles.nutritionCard}>
+                          <div className={`${styles.nutritionCard} ${styles.fibCard}`}>
                             <span className={styles.nutritionVal}>{activeRecipe.nutrition.fiber}</span>
                             <span className={styles.nutritionLabel}>Fiber</span>
+                            <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #6366f1, #818cf8)' }}></div>
                           </div>
                         )}
                       </div>
-                    </div>
-                  )}
 
-                  {/* Sketches */}
-                  {activeTab === 'sketches' && (
-                    <div className={styles.sketchesContainer}>
-                      <p className={styles.sketchesInstruction}>
-                        Sketches dynamically generated by Gemini AI representing different stages of cooking.
-                      </p>
-                      <div className={styles.sketchesGrid}>
-                        {/* Ingredients Sketch */}
-                        <div className={styles.sketchCard}>
-                          <span className={styles.sketchTitle}>Stage 1: Prep & Ingredients</span>
-                          {activeRecipe.sketches?.ingredients ? (
-                            <div 
-                              className={styles.sketchSvgWrapper} 
-                              dangerouslySetInnerHTML={{ __html: cleanSvg(activeRecipe.sketches.ingredients) }}
-                            />
-                          ) : (
-                            <div className={styles.sketchSvgWrapper}>🎨 No sketch available</div>
-                          )}
-                        </div>
-
-                        {/* Process Sketch */}
-                        <div className={styles.sketchCard}>
-                          <span className={styles.sketchTitle}>Stage 2: Cooking Action</span>
-                          {activeRecipe.sketches?.process ? (
-                            <div 
-                              className={styles.sketchSvgWrapper} 
-                              dangerouslySetInnerHTML={{ __html: cleanSvg(activeRecipe.sketches.process) }}
-                            />
-                          ) : (
-                            <div className={styles.sketchSvgWrapper}>🎨 No sketch available</div>
-                          )}
-                        </div>
-
-                        {/* Finished Sketch */}
-                        <div className={styles.sketchCard}>
-                          <span className={styles.sketchTitle}>Stage 3: Finished Dish</span>
-                          {activeRecipe.sketches?.finished ? (
-                            <div 
-                              className={styles.sketchSvgWrapper} 
-                              dangerouslySetInnerHTML={{ __html: cleanSvg(activeRecipe.sketches.finished) }}
-                            />
-                          ) : (
-                            <div className={styles.sketchSvgWrapper}>🎨 No sketch available</div>
-                          )}
-                        </div>
+                      <div className={styles.nutritionDisclaimer}>
+                        <span className={styles.disclaimerIcon}>⚠️</span>
+                        <span>Nutritional values are automatically estimated by Gemini AI based on recipe constituents. For precise medical guidelines, consult a professional nutritionist.</span>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className={styles.recipeDetail} style={{ alignItems: 'center', justifyContent: 'center', minHeight: '350px' }}>
-                <span style={{ fontSize: '3rem' }}>🍲</span>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginTop: '1rem' }}>No Active Recipe</h3>
-                <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Paste a video link above to generate and display a recipe.</p>
+              <div className={styles.emptyDetailState}>
+                <span className={styles.emptyStateIcon}>🍲</span>
+                <h3>No Recipe Selected</h3>
+                <p>Select a recipe from your book or import a new video link above to view your culinary planner card.</p>
               </div>
             )}
           </section>
         </main>
       )}
-
-
     </div>
   );
 }

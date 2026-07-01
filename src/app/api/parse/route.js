@@ -230,7 +230,7 @@ ${extractedMeta.author ? 'Creator: ' + extractedMeta.author : ''}`;
       }
     });
 
-    const prompt = `You are an expert chef and culinary visualizer. Your task is to take this recipe caption, metadata, and description, structure it into a beautiful recipe card, and generate three hand-drawn/sketched-style SVGs representing different stages of the cooking process.
+    const prompt = `You are an expert chef. Your task is to take this recipe caption, metadata, and description, and structure it into a beautiful recipe card.
 
 Source Content:
 """
@@ -263,20 +263,8 @@ Please respond with a JSON object that strictly adheres to the following JSON sc
     "carbs": "40g", // estimated carbs per serving
     "fat": "15g", // estimated fat per serving
     "fiber": "4g" // estimated fiber per serving (optional, null if unsure)
-  },
-  "sketches": {
-    "ingredients": "Valid, inline SVG string representing the raw ingredients or prepped setup (e.g. carrots, onions, cutting board, oil bottle). Do not use external files or fonts. Must scale responsively with viewBox='0 0 400 400' and no static width/height. Use stylized stroke-based sketch shapes. Use #d97706 for highlight elements, #57534e for dark sketch strokes, and #eae5dc for fills or accents.",
-    "process": "Valid, inline SVG string representing the active cooking phase (e.g. pot boiling, whisk in a bowl, pan on flames, spatula stirring). Must follow the same style and color constraints with viewBox='0 0 400 400'.",
-    "finished": "Valid, inline SVG string representing the final plated dish (e.g. pasta bowl with steam, sandwich cut in half, soup, dessert). Must follow the same style and color constraints with viewBox='0 0 400 400'."
   }
 }
-
-SVG Guidelines:
-1. Return ONLY the raw inline <svg ...>...</svg> content within the JSON properties. No markdown code blocks, backticks, or escaping issues inside the SVG string.
-2. The SVG MUST be valid XML. Close all tags.
-3. Draw a modern, minimal, aesthetic line-art sketch. Use <path>, <circle>, <rect>, <ellipse> with stroke-width of 2 to 4px. Make it look like a hand-drawn chalkboard or recipe sketch.
-4. Colors: Use stroke="#57534e" for main lines (or dark theme equivalent, but neutral dark line looks great), fill="none" or soft pastel fills matching our theme (e.g., fill="#f4f1eb" or #fef3c7), and highlight strokes/dots with stroke="#d97706" to represent spice, heat, garnish, or focal points.
-5. Do not include text elements in the SVGs to avoid font rendering issues.
 
 Ensure all ingredients have estimated numeric quantities where possible so they can be scaled.`;
 
