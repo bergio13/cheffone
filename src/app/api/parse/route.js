@@ -85,7 +85,8 @@ async function extractMetadata(url) {
         if (response.ok) {
           const data = await response.json();
           const caption = extractCaptionFromJson(data);
-          const videoUrl = data.video_url || data.data?.video_url || data.data?.main_media_hd || data.data?.main_media;
+          // Prioritize standard/low-res streams (sd, main_media, regular video) over HD to minimize bandwidth, serverless compute, and token costs
+          const videoUrl = data.video_sd || data.video_sd_url || data.data?.video_sd_url || data.data?.main_media || data.video_url || data.data?.video_url || data.data?.main_media_hd;
           if (caption) {
             console.log("RapidAPI successfully scraped caption! Length:", caption.length, "VideoUrl:", videoUrl ? "Present" : "Missing");
             return {
