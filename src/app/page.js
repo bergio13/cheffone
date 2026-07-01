@@ -100,6 +100,7 @@ export default function Home() {
         ...parsedRecipe,
         id: Date.now().toString(),
         sourceUrl: url,
+        videoUrl: data.metadata?.videoUrl || '', // Extract and save direct video URL!
         parsedAt: new Date().toLocaleDateString(),
       };
 
@@ -161,17 +162,19 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      {/* Decorative Glow Elements */}
-      <div className={styles.ambientGlow1}></div>
-      <div className={styles.ambientGlow2}></div>
+      {/* Decorative Brush/Sumi-e Background Elements */}
+      <div className={styles.brushStrokeBg}></div>
+      <div className={styles.teaCupGlow}></div>
 
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.logo}>
-          <span className={styles.logoIcon}>⚜️</span>
+          <div className={styles.hankoStamp}>
+            <span>廚</span>
+          </div>
           <div className={styles.logoText}>
             <h1>Cheffone</h1>
-            <p>Smart Video-to-Recipe Planner</p>
+            <p>Japanese & Chinese Inspired Culinary Assistant</p>
           </div>
         </div>
       </header>
@@ -179,8 +182,8 @@ export default function Home() {
       {/* Parser Box */}
       <section className={styles.parsePanel}>
         <div className={styles.parseHeader}>
-          <h2 className={styles.parseTitle}>Import New Recipe</h2>
-          <p className={styles.parseSubtitle}>Paste a TikTok or Instagram link to automatically parse the video details</p>
+          <h2 className={styles.parseTitle}>Import Culinary Video</h2>
+          <p className={styles.parseSubtitle}>Input an Instagram or TikTok reel link to parse media streams and transcribe details</p>
         </div>
         
         <form onSubmit={handleParseRecipe} className={styles.inputGroup}>
@@ -189,7 +192,7 @@ export default function Home() {
             <input
               type="url"
               className={styles.urlInput}
-              placeholder="Paste video URL (TikTok, Reels, etc.)..."
+              placeholder="Paste recipe video URL..."
               value={url}
               onChange={(e) => {
                 const val = e.target.value;
@@ -231,19 +234,19 @@ export default function Home() {
             onClick={() => setShowFallback(!showFallback)}
           >
             <span className={styles.triggerIcon}>{showFallback ? "▼" : "▶"}</span>
-            <span>Can't scrape? Paste caption/transcript manually</span>
+            <span>Alternative import: Paste caption/transcript manually</span>
           </button>
 
           {showFallback && (
             <div className={styles.collapsibleContent}>
               <textarea
                 className={styles.textarea}
-                placeholder="Paste the video caption, comments, transcript, or raw text ingredients list here to parse..."
+                placeholder="Paste raw description, captions, or ingredient transcripts here..."
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}
               />
               <span className={styles.textareaTip}>
-                Tip: Copy the caption directly from the TikTok/Instagram post and paste it here.
+                Tip: Copy the caption text directly from the host post to parse it.
               </span>
             </div>
           )}
@@ -258,7 +261,7 @@ export default function Home() {
           <div className={styles.loaderSpinner}>
             <div className={styles.loaderInnerRing}></div>
           </div>
-          <p className={styles.loaderStatusText}>Crafting your culinary card...</p>
+          <p className={styles.loaderStatusText}>Weaving ingredients & transcribing steps...</p>
           <div className={styles.loaderTip}>{LOADER_TIPS[loaderTipIndex]}</div>
         </div>
       )}
@@ -269,16 +272,16 @@ export default function Home() {
           {/* Sidebar - Saved Recipes */}
           <aside className={styles.sidebar}>
             <div className={styles.sidebarHeader}>
-              <h3 className={styles.sidebarTitle}>Culinary Book</h3>
+              <h3 className={styles.sidebarTitle}>Culinary Scroll</h3>
               <span className={styles.recipeCountBadge}>{recipes.length} Saved</span>
             </div>
             
             <div className={styles.recipeList}>
               {recipes.length === 0 ? (
                 <div className={styles.emptyState}>
-                  <span className={styles.emptyIcon}>📖</span>
-                  <p>No recipes saved yet.</p>
-                  <p className={styles.emptyTextSub}>Paste a link to parse your first recipe card!</p>
+                  <span className={styles.emptyIcon}>🥢</span>
+                  <p>Scroll is empty.</p>
+                  <p className={styles.emptyTextSub}>Import a link to write your first recipe card!</p>
                 </div>
               ) : (
                 recipes.map((r) => (
@@ -302,7 +305,7 @@ export default function Home() {
                     <button 
                       className={styles.deleteButton}
                       onClick={(e) => handleDeleteRecipe(r.id, e)}
-                      title="Delete recipe"
+                      title="Remove recipe"
                     >
                       ✕
                     </button>
@@ -319,7 +322,14 @@ export default function Home() {
                 {/* Header details */}
                 <div className={styles.recipeHeaderBlock}>
                   <div className={styles.titleArea}>
-                    <span className={styles.categoryBadge}>{activeRecipe.category || 'Recipe'}</span>
+                    <div className={styles.titleBadgeContainer}>
+                      <span className={styles.categoryBadge}>{activeRecipe.category || 'Recipe'}</span>
+                      {activeRecipe.difficulty && (
+                        <span className={`${styles.categoryBadge} ${styles.difficultyBadge}`}>
+                          {activeRecipe.difficulty}
+                        </span>
+                      )}
+                    </div>
                     <h2 className={styles.recipeTitle}>{activeRecipe.title}</h2>
                     {activeRecipe.description && <p className={styles.recipeDescription}>{activeRecipe.description}</p>}
                   </div>
@@ -327,7 +337,7 @@ export default function Home() {
                   {/* Servings scale control */}
                   <div className={styles.headerControls}>
                     <div className={styles.servingAdjuster}>
-                      <span className={styles.servingLabel}>Servings:</span>
+                      <span className={styles.servingLabel}>Portion:</span>
                       <button 
                         className={styles.adjustBtn} 
                         onClick={() => setAdjustedServings(Math.max(1, adjustedServings - 1))}
@@ -347,7 +357,7 @@ export default function Home() {
                       onClick={triggerPrint} 
                       className={styles.printButton}
                     >
-                      🖨️ Print Card
+                      🖨️ Print recipe
                     </button>
                   </div>
                 </div>
@@ -369,7 +379,7 @@ export default function Home() {
                     </div>
                   </div>
                   <div className={styles.metaItem}>
-                    <span className={styles.metaIcon}>📈</span>
+                    <span className={styles.metaIcon}>🥋</span>
                     <div className={styles.metaText}>
                       <span className={styles.metaLabel}>Difficulty</span>
                       <span className={styles.metaValue}>{activeRecipe.difficulty || 'Easy'}</span>
@@ -379,7 +389,7 @@ export default function Home() {
                     <div className={styles.metaItem}>
                       <span className={styles.metaIcon}>🎬</span>
                       <div className={styles.metaText}>
-                        <span className={styles.metaLabel}>Source</span>
+                        <span className={styles.metaLabel}>Source link</span>
                         <a href={activeRecipe.sourceUrl} target="_blank" rel="noopener noreferrer" className={styles.metaLink}>
                           View Video
                         </a>
@@ -395,13 +405,13 @@ export default function Home() {
                       className={`${styles.tab} ${activeTab === 'recipe' ? styles.activeTab : ''}`}
                       onClick={() => setActiveTab('recipe')}
                     >
-                      🧑‍🍳 Ingredients & Instructions
+                      🍱 Recipe Board & Player
                     </button>
                     <button 
                       className={`${styles.tab} ${activeTab === 'nutrition' ? styles.activeTab : ''}`}
                       onClick={() => setActiveTab('nutrition')}
                     >
-                      📊 Nutritional Breakdown
+                      📊 Nutrition Breakdowns
                     </button>
                   </div>
                 </div>
@@ -411,47 +421,101 @@ export default function Home() {
                   {/* Ingredients & Steps */}
                   {activeTab === 'recipe' && (
                     <div className={styles.culinaryGrid}>
-                      {/* Left: Ingredients */}
-                      <div className={styles.ingredientsCard}>
-                        <h4 className={styles.sectionHeading}>Ingredients Checklist</h4>
-                        <p className={styles.sectionSubtitle}>Scale servings above to adjust amounts. Check items as you prep.</p>
-                        <div className={styles.ingredientsList}>
-                          {activeRecipe.ingredients?.map((ing, idx) => (
-                            <label key={idx} className={`${styles.ingredientItem} ${checkedIngredients[idx] ? styles.ingredientChecked : ''}`} onClick={() => toggleIngredient(idx)}>
-                              <div className={styles.checkboxWrapper}>
-                                <input 
-                                  type="checkbox" 
-                                  className={styles.checkbox}
-                                  checked={!!checkedIngredients[idx]}
-                                  readOnly
-                                />
-                                <span className={styles.customCheckbox}></span>
-                              </div>
-                              <span className={styles.ingredientText}>
-                                <strong className={styles.quantityHighlight}>
-                                  {scaleQuantity(ing.quantity, activeRecipe.servings)} {ing.unit}
-                                </strong> {ing.name}
-                              </span>
-                            </label>
-                          ))}
+                      
+                      {/* Left Side: Embedded Video + Quick Macros */}
+                      <div className={styles.leftMediaColumn}>
+                        {activeRecipe.videoUrl ? (
+                          <div className={styles.videoCard}>
+                            <h4 className={styles.sectionHeading}>Recipe Reel</h4>
+                            <p className={styles.sectionSubtitle}>Video feed extracted from platform source</p>
+                            <div className={styles.videoPlayerWrapper}>
+                              <video 
+                                src={activeRecipe.videoUrl} 
+                                controls 
+                                playsInline
+                                className={styles.videoElement}
+                                preload="metadata"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={styles.videoCardPlaceholder}>
+                            <span className={styles.placeholderIcon}>🎬</span>
+                            <p className={styles.placeholderTitle}>No Direct Video Available</p>
+                            <span className={styles.placeholderSub}>
+                              Direct video feed requires a RapidAPI key. Use manual copy-paste for offline streams.
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Quick Macros Card */}
+                        <div className={styles.quickMacrosCard}>
+                          <h4 className={styles.sectionHeading}>Quick Macros</h4>
+                          <div className={styles.quickMacrosGrid}>
+                            <div className={styles.macroStat}>
+                              <span className={styles.macroVal}>{activeRecipe.nutrition?.calories || '—'}</span>
+                              <span className={styles.macroName}>Cals</span>
+                            </div>
+                            <div className={styles.macroStat}>
+                              <span className={styles.macroVal}>{activeRecipe.nutrition?.protein || '—'}</span>
+                              <span className={styles.macroName}>Protein</span>
+                            </div>
+                            <div className={styles.macroStat}>
+                              <span className={styles.macroVal}>{activeRecipe.nutrition?.carbs || '—'}</span>
+                              <span className={styles.macroName}>Carbs</span>
+                            </div>
+                            <div className={styles.macroStat}>
+                              <span className={styles.macroVal}>{activeRecipe.nutrition?.fat || '—'}</span>
+                              <span className={styles.macroName}>Fat</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Right: Instructions */}
-                      <div className={styles.instructionsCard}>
-                        <h4 className={styles.sectionHeading}>Step-by-Step Method</h4>
-                        <div className={styles.instructionsList}>
-                          {activeRecipe.instructions?.map((step, idx) => (
-                            <div key={idx} className={styles.stepCard}>
-                              <div className={styles.stepIndicator}>
-                                <div className={styles.stepNumber}>{idx + 1}</div>
-                                {idx < activeRecipe.instructions.length - 1 && <div className={styles.stepConnector}></div>}
+                      {/* Right Side: Ingredients & Directions */}
+                      <div className={styles.rightContentColumn}>
+                        {/* Ingredients */}
+                        <div className={styles.ingredientsCard}>
+                          <h4 className={styles.sectionHeading}>Ingredients Checklist</h4>
+                          <p className={styles.sectionSubtitle}>Select items as you prep. Quantities scale automatically.</p>
+                          <div className={styles.ingredientsList}>
+                            {activeRecipe.ingredients?.map((ing, idx) => (
+                              <label key={idx} className={`${styles.ingredientItem} ${checkedIngredients[idx] ? styles.ingredientChecked : ''}`} onClick={() => toggleIngredient(idx)}>
+                                <div className={styles.checkboxWrapper}>
+                                  <input 
+                                    type="checkbox" 
+                                    className={styles.checkbox}
+                                    checked={!!checkedIngredients[idx]}
+                                    readOnly
+                                  />
+                                  <span className={styles.customCheckbox}></span>
+                                </div>
+                                <span className={styles.ingredientText}>
+                                  <strong className={styles.quantityHighlight}>
+                                    {scaleQuantity(ing.quantity, activeRecipe.servings)} {ing.unit}
+                                  </strong> {ing.name}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Directions */}
+                        <div className={styles.instructionsCard}>
+                          <h4 className={styles.sectionHeading}>Method of Preparation</h4>
+                          <div className={styles.instructionsList}>
+                            {activeRecipe.instructions?.map((step, idx) => (
+                              <div key={idx} className={styles.stepCard}>
+                                <div className={styles.stepIndicator}>
+                                  <div className={styles.stepNumber}>{idx + 1}</div>
+                                  {idx < activeRecipe.instructions.length - 1 && <div className={styles.stepConnector}></div>}
+                                </div>
+                                <div className={styles.stepContent}>
+                                  <p>{step}</p>
+                                </div>
                               </div>
-                              <div className={styles.stepContent}>
-                                <p>{step}</p>
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -469,28 +533,28 @@ export default function Home() {
                         <div className={`${styles.nutritionCard} ${styles.calCard}`}>
                           <span className={styles.nutritionVal}>{activeRecipe.nutrition?.calories || '—'}</span>
                           <span className={styles.nutritionLabel}>Calories</span>
-                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #d97706, #fb923c)' }}></div>
+                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, var(--accent-primary), #fb923c)' }}></div>
                         </div>
                         <div className={`${styles.nutritionCard} ${styles.protCard}`}>
                           <span className={styles.nutritionVal}>{activeRecipe.nutrition?.protein || '—'}</span>
                           <span className={styles.nutritionLabel}>Protein</span>
-                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #10b981, #34d399)' }}></div>
+                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, var(--success), #a7f3d0)' }}></div>
                         </div>
                         <div className={`${styles.nutritionCard} ${styles.carbCard}`}>
                           <span className={styles.nutritionVal}>{activeRecipe.nutrition?.carbs || '—'}</span>
-                          <span className={styles.nutritionLabel}>Carbs</span>
-                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #f59e0b, #fbbf24)' }}></div>
+                          <span className={styles.nutritionLabel}>Carbohydrates</span>
+                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #d97706, #fbbf24)' }}></div>
                         </div>
                         <div className={`${styles.nutritionCard} ${styles.fatCard}`}>
                           <span className={styles.nutritionVal}>{activeRecipe.nutrition?.fat || '—'}</span>
                           <span className={styles.nutritionLabel}>Fat</span>
-                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #ec4899, #f472b6)' }}></div>
+                          <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #a33a31, #f87171)' }}></div>
                         </div>
                         {activeRecipe.nutrition?.fiber && (
                           <div className={`${styles.nutritionCard} ${styles.fibCard}`}>
                             <span className={styles.nutritionVal}>{activeRecipe.nutrition.fiber}</span>
                             <span className={styles.nutritionLabel}>Fiber</span>
-                            <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #6366f1, #818cf8)' }}></div>
+                            <div className={styles.macroIndicator} style={{ background: 'linear-gradient(90deg, #4f46e5, #818cf8)' }}></div>
                           </div>
                         )}
                       </div>
@@ -505,9 +569,9 @@ export default function Home() {
               </div>
             ) : (
               <div className={styles.emptyDetailState}>
-                <span className={styles.emptyStateIcon}>🍲</span>
+                <span className={styles.emptyStateIcon}>🍱</span>
                 <h3>No Recipe Selected</h3>
-                <p>Select a recipe from your book or import a new video link above to view your culinary planner card.</p>
+                <p>Select a recipe scroll on the left or import a new video link above to view your culinary card.</p>
               </div>
             )}
           </section>

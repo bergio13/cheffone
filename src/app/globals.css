@@ -1,60 +1,61 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-serif: 'Noto Serif JP', 'Playfair Display', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
-  /* Color Palette (Warm & Premium Culinary Theme) */
-  --bg-primary: #fcfbfa;
-  --bg-secondary: #f4f1eb;
-  --bg-tertiary: #eae5dc;
-  --card-bg: rgba(255, 255, 255, 0.75);
-  --card-border: rgba(230, 224, 213, 0.5);
-  --text-primary: #1c1917;
-  --text-secondary: #57534e;
-  --text-tertiary: #878170;
+  /* Traditional East Asian Color Palette (Cinnabar Red, Sumi Ink, Matcha Green, Rice Paper) */
+  --bg-primary: #fbfaf7;         /* Warm rice paper white */
+  --bg-secondary: #f5f1e8;       /* Bamboo sand / tea wood */
+  --bg-tertiary: #e9e2d4;        /* Washed ginger brown */
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-border: rgba(163, 58, 49, 0.12); /* Lacquer Red tint */
+  --text-primary: #1c1a18;       /* Calligraphy Sumi Ink black */
+  --text-secondary: #4d4640;     /* Wet charcoal */
+  --text-tertiary: #8f857a;      /* Bamboo sheath gray */
   
-  --accent-primary: #d97706; /* Warm amber */
-  --accent-hover: #b45309;
-  --accent-light: #fef3c7;
-  --success: #15803d;
+  --accent-primary: #a33a31;     /* Cinnabar lacquer red */
+  --accent-hover: #822a22;
+  --accent-light: #fdf2f0;       /* Cherry blossom tint */
+  --success: #4a6b53;            /* Matcha green */
   --error: #b91c1c;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(28, 25, 22, 0.05), 0 2px 4px -2px rgba(28, 25, 22, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(28, 25, 22, 0.08), 0 4px 6px -4px rgba(28, 25, 22, 0.08);
-  --shadow-xl: 0 20px 25px -5px rgba(28, 25, 22, 0.1), 0 8px 10px -6px rgba(28, 25, 22, 0.1);
-  --glass-blur: 12px;
+  --shadow-sm: 0 1px 2px 0 rgba(28, 26, 24, 0.02);
+  --shadow-md: 0 4px 10px -1px rgba(28, 26, 24, 0.04), 0 2px 6px -2px rgba(28, 26, 24, 0.04);
+  --shadow-lg: 0 12px 20px -3px rgba(28, 26, 24, 0.06), 0 6px 8px -4px rgba(28, 26, 24, 0.06);
+  --shadow-xl: 0 24px 36px -5px rgba(28, 26, 24, 0.08), 0 12px 16px -6px rgba(28, 26, 24, 0.08);
+  --glass-blur: 14px;
 
-  --border-radius-sm: 8px;
-  --border-radius-md: 14px;
-  --border-radius-lg: 24px;
+  --border-radius-sm: 6px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 20px;
   --border-radius-full: 9999px;
 
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-primary: #0c0a09;
-    --bg-secondary: #171412;
-    --bg-tertiary: #292524;
-    --card-bg: rgba(23, 20, 18, 0.7);
-    --card-border: rgba(68, 64, 60, 0.4);
-    --text-primary: #f5f5f4;
-    --text-secondary: #d6d3d1;
-    --text-tertiary: #a8a29e;
+    --bg-primary: #0f0e0d;        /* Deep Sumi calligraphy ink */
+    --bg-secondary: #1a1817;      /* Dark tea bark brown */
+    --bg-tertiary: #2b2725;       /* Charred bamboo gray */
+    --card-bg: rgba(26, 24, 23, 0.85);
+    --card-border: rgba(224, 86, 72, 0.18);
+    --text-primary: #f5f2eb;      /* Unbleached silk white */
+    --text-secondary: #d4cbbd;    /* Toasted sesame tint */
+    --text-tertiary: #9e9486;     /* Dry lotus root gray */
     
-    --accent-primary: #f59e0b;
-    --accent-hover: #fbbf24;
-    --accent-light: #451a03;
+    --accent-primary: #e05648;    /* Vibrant lacquer red stamp */
+    --accent-hover: #eb7163;
+    --accent-light: #2e1412;      /* Deep mahogany / cinnabar wine */
+    --success: #5f8575;           /* Matcha bamboo forest green */
     
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.6);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -99,14 +100,13 @@ input, button, textarea {
   50% { opacity: 1; }
 }
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-secondary);
