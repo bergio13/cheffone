@@ -68,14 +68,13 @@ async function extractMetadata(url) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { url, rawText, apiKey } = body;
+    const { url, rawText } = body;
 
-    // Use provided client-side apiKey, or check server environment variable
-    const activeApiKey = apiKey || process.env.GEMINI_API_KEY;
+    const activeApiKey = process.env.GEMINI_API_KEY;
 
-    if (!activeApiKey) {
+    if (!activeApiKey || activeApiKey === 'your_gemini_api_key_here') {
       return NextResponse.json(
-        { error: 'Gemini API Key is required. Please set it in App Settings or as an environment variable.' },
+        { error: 'Gemini API Key is missing on the server. Please configure GEMINI_API_KEY inside your .env.local file in the project root.' },
         { status: 400 }
       );
     }

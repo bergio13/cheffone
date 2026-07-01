@@ -14,12 +14,9 @@ const LOADER_TIPS = [
 ];
 
 export default function Home() {
-  const [apiKey, setApiKey] = useState('');
-  const [inputApiKey, setInputApiKey] = useState('');
   const [url, setUrl] = useState('');
   const [rawText, setRawText] = useState('');
   const [showFallback, setShowFallback] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [recipes, setRecipes] = useState([]);
   const [activeRecipeId, setActiveRecipeId] = useState(null);
   
@@ -31,15 +28,8 @@ export default function Home() {
   const [loaderTipIndex, setLoaderTipIndex] = useState(0);
   const [error, setError] = useState('');
 
-  // Load API Key and Saved Recipes on mount
+  // Load Saved Recipes on mount
   useEffect(() => {
-    const savedKey = localStorage.getItem('cheffone_gemini_api_key');
-    if (savedKey) {
-      setApiKey(savedKey);
-      setInputApiKey(savedKey);
-    } else {
-      setShowSettings(true); // Proactively prompt for API key if missing
-    }
 
     const savedRecipes = localStorage.getItem('cheffone_recipes');
     if (savedRecipes) {
@@ -62,13 +52,6 @@ export default function Home() {
     localStorage.setItem('cheffone_recipes', JSON.stringify(newRecipes));
   };
 
-  // Save API key
-  const handleSaveApiKey = () => {
-    localStorage.setItem('cheffone_gemini_api_key', inputApiKey);
-    setApiKey(inputApiKey);
-    setShowSettings(false);
-    setError('');
-  };
 
   // Rotate loader tips
   useEffect(() => {
@@ -102,7 +85,6 @@ export default function Home() {
         body: JSON.stringify({
           url,
           rawText,
-          apiKey: apiKey || undefined, // Pass client key if present
         }),
       });
 
@@ -198,25 +180,7 @@ export default function Home() {
             <p>Video-to-Recipe AI Assistant</p>
           </div>
         </div>
-        <div className={styles.headerActions}>
-          <button 
-            className={styles.iconButton} 
-            onClick={() => setShowSettings(true)}
-            title="API Settings"
-            aria-label="Settings"
-          >
-            ⚙️
-          </button>
-        </div>
       </header>
-
-      {/* API Key Missing Alert Banner */}
-      {!apiKey && (
-        <div className={styles.keyAlert}>
-          <span>🔑 Setup your <strong>free Gemini API Key</strong> to start parsing recipe links.</span>
-          <button className={styles.keyAlertButton} onClick={() => setShowSettings(true)}>Setup Key</button>
-        </div>
-      )}
 
       {/* Parser Box */}
       <section className={styles.parsePanel}>
@@ -538,34 +502,7 @@ export default function Home() {
         </main>
       )}
 
-      {/* Settings Modal (Gemini API Key configuration) */}
-      {showSettings && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <button className={styles.modalClose} onClick={() => setShowSettings(false)}>×</button>
-            <h3 className={styles.modalTitle}>Gemini API Settings</h3>
-            <p className={styles.modalDesc}>
-              This app is completely serverless and free. To parse recipes, get a free 
-              API key from <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className={styles.modalLink}>Google AI Studio</a>.
-            </p>
-            <p className={styles.modalDesc} style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
-              🔒 Your API key is stored <strong>only in your local browser</strong> and is sent directly to the serverless function. It is never logged or saved to any external database.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label htmlFor="apiKeyInput" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Gemini API Key:</label>
-              <input
-                id="apiKeyInput"
-                type="password"
-                className={styles.urlInput}
-                placeholder="AIzaSy..."
-                value={inputApiKey}
-                onChange={(e) => setInputApiKey(e.target.value)}
-              />
-            </div>
-            <button className={styles.primaryButton} onClick={handleSaveApiKey}>Save Settings</button>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
