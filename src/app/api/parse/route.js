@@ -106,7 +106,7 @@ ${extractedMeta.author ? 'Creator: ' + extractedMeta.author : ''}`;
     // Initialize Gemini API
     const genAI = new GoogleGenerativeAI(activeApiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json'
       }
