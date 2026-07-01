@@ -94,7 +94,11 @@ export default function Home() {
         throw new Error(data.error || 'Failed to parse recipe. Please check your URL or API key.');
       }
 
+      console.log('Client received data:', data);
       const parsedRecipe = data.recipe;
+      if (!parsedRecipe) {
+        throw new Error('API returned successfully but no recipe data was parsed.');
+      }
       const newRecipe = {
         ...parsedRecipe,
         id: Date.now().toString(),
@@ -102,6 +106,7 @@ export default function Home() {
         parsedAt: new Date().toLocaleDateString(),
       };
 
+      console.log('Adding new recipe to state:', newRecipe);
       const updatedRecipes = [newRecipe, ...recipes];
       saveRecipesToStorage(updatedRecipes);
       setActiveRecipeId(newRecipe.id);

@@ -162,8 +162,9 @@ SVG Guidelines:
 
 Ensure all ingredients have estimated numeric quantities where possible so they can be scaled.`;
 
-    const result = await model.generateContent(prompt);
+     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
+    console.log("Gemini API raw response:", responseText);
     
     // Parse response text to JSON and send it back
     let parsedData;
@@ -180,6 +181,14 @@ Ensure all ingredients have estimated numeric quantities where possible so they 
         throw parseError;
       }
     }
+
+    console.log("Parsed recipe data details:", {
+      title: parsedData.title,
+      prepTime: parsedData.prepTime,
+      ingredientsCount: parsedData.ingredients?.length,
+      instructionsCount: parsedData.instructions?.length,
+      sketchesCount: parsedData.sketches ? Object.keys(parsedData.sketches).length : 0
+    });
 
     return NextResponse.json({
       success: true,
