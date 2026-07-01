@@ -58,8 +58,8 @@ async function extractMetadata(url) {
     const isInstagram = url.includes('instagram.com');
 
     // RapidAPI Scraper bypass if configured in .env.local
-    const rapidApiKey = process.env.RAPIDAPI_KEY;
-    const rapidApiEndpoint = process.env.RAPIDAPI_ENDPOINT;
+    const rapidApiKey = process.env.RAPIDAPI_KEY?.trim();
+    const rapidApiEndpoint = process.env.RAPIDAPI_ENDPOINT?.trim();
 
     if (rapidApiKey && rapidApiEndpoint) {
       try {
@@ -161,7 +161,7 @@ export async function POST(request) {
     const body = await request.json();
     const { url, rawText } = body;
 
-    const activeApiKey = process.env.GEMINI_API_KEY;
+    const activeApiKey = process.env.GEMINI_API_KEY?.trim();
 
     if (!activeApiKey || activeApiKey === 'your_gemini_api_key_here') {
       return NextResponse.json(
@@ -174,7 +174,7 @@ export async function POST(request) {
     let extractedMeta = null;
 
     const isInstagramUrl = url && url.includes('instagram.com');
-    const isRapidApiConfigured = process.env.RAPIDAPI_KEY && process.env.RAPIDAPI_ENDPOINT;
+    const isRapidApiConfigured = process.env.RAPIDAPI_KEY?.trim() && process.env.RAPIDAPI_ENDPOINT?.trim();
 
     if (isInstagramUrl && !sourceText.trim() && !isRapidApiConfigured) {
       return NextResponse.json(
