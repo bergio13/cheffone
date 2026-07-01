@@ -1,11 +1,74 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Simple crawler to extract basic metadata from a URL
+// Robust helper to extract caption text from different RapidAPI JSON response styles
+function extractCaptionFromJson(data) {
+  if (!data) return '';
+  
+  if (typeof data.caption === 'string') return data.caption;
+  if (typeof data.text === 'string') return data.text;
+  if (typeof data.description === 'string') return data.description;
+  if (typeof data.title === 'string') return data.title;
+  
+  if (data.data) {
+    if (typeof data.data.caption === 'string') return data.data.caption;
+    if (typeof data.data.text === 'string') return data.data.text;
+    if (typeof data.data.description === 'string') return data.data.description;
+    if (data.data.caption && typeof data.data.caption.text === 'string') return data.data.caption.text;
+  }
+  
+  try {
+    const edge = data.graphql?.shortcode_media?.edge_media_to_caption?.edges?.[0]?.node?.text;
+    if (edge) return edge;
+  } catch (e) {}
+
+  return JSON.stringify(data);
+}
+
+// Simple crawler to extract basic metadata from a URL (with RapidAPI integration)
 async function extractMetadata(url) {
   try {
     const isTikTok = url.includes('tiktok.com');
     const isInstagram = url.includes('instagram.com');
+
+    // RapidAPI Scraper bypass if configured in .env.local
+    const rapidApiKey = process.env.RAPIDAPI_KEY;
+    const rapidApiEndpoint = process.env.RAPIDAPI_ENDPOINT;
+
+    if (rapidApiKey && rapidApiEndpoint) {
+      try {
+        console.log(`Using RapidAPI to scrape URL: ${url}`);
+        const cleanEndpoint = rapidApiEndpoint.endsWith('=') || rapidApiEndpoint.includes('?') ? rapidApiEndpoint : `${rapidApiEndpoint}?url=`;
+        const fetchUrl = cleanEndpoint.endsWith('=') || cleanEndpoint.endsWith('?') ? `${cleanEndpoint}${encodeURIComponent(url)}` : `${cleanEndpoint}?url=${encodeURIComponent(url)}`;
+        const host = new URL(cleanEndpoint).hostname;
+
+        const response = await fetch(fetchUrl, {
+          headers: {
+            'x-rapidapi-key': rapidApiKey,
+            'x-rapidapi-host': host
+          },
+          next: { revalidate: 3600 }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const caption = extractCaptionFromJson(data);
+          if (caption) {
+            console.log("RapidAPI successfully scraped caption! Length:", caption.length);
+            return {
+              title: data.title || '',
+              description: caption,
+              provider: isInstagram ? 'Instagram' : (isTikTok ? 'TikTok' : 'Web'),
+              extractedText: caption
+            };
+          }
+        } else {
+          console.error(`RapidAPI request failed with status: ${response.status}`);
+        }
+      } catch (rapidError) {
+        console.error("RapidAPI execution failed, falling back to basic scrapers:", rapidError);
+      }
+    }
 
     if (isTikTok) {
       // Use TikTok's official public oEmbed API
@@ -83,10 +146,11 @@ export async function POST(request) {
     let extractedMeta = null;
 
     const isInstagramUrl = url && url.includes('instagram.com');
+    const isRapidApiConfigured = process.env.RAPIDAPI_KEY && process.env.RAPIDAPI_ENDPOINT;
 
-    if (isInstagramUrl && !sourceText.trim()) {
+    if (isInstagramUrl && !sourceText.trim() && !isRapidApiConfigured) {
       return NextResponse.json(
-        { error: 'Instagram links cannot be scraped automatically due to platform security. Please copy the caption/ingredients from the Instagram post and paste it into the fallback text area below!' },
+        { error: 'Instagram links cannot be scraped automatically without a RapidAPI key configuration due to login walls. Please copy the caption/ingredients from the post and paste it into the fallback text area below, or add RAPIDAPI_KEY to your .env.local file to enable auto-scraping!' },
         { status: 400 }
       );
     }
@@ -94,7 +158,7 @@ export async function POST(request) {
     if (url && url.startsWith('http')) {
       extractedMeta = await extractMetadata(url);
       
-      const isLoginWall = extractedMeta && (
+      const isLoginWall = extractedMeta && !isRapidApiConfigured && (
         (extractedMeta.title && extractedMeta.title.toLowerCase().includes('login')) ||
         (extractedMeta.title === 'Instagram') ||
         (extractedMeta.description && extractedMeta.description.toLowerCase().includes('welcome back to instagram'))
