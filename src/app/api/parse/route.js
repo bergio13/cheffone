@@ -1,0 +1,198 @@
+import { NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Simple crawler to extract basic metadata from a URL
+async function extractMetadata(url) {
+  try {
+    const isTikTok = url.includes('tiktok.com');
+    const isInstagram = url.includes('instagram.com');
+
+    if (isTikTok) {
+      // Use TikTok's official public oEmbed API
+      const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
+      const response = await fetch(oembedUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          title: data.title || '',
+          author: data.author_name || '',
+          provider: 'TikTok',
+          htmlContent: data.html || '',
+          rawMetadata: JSON.stringify(data)
+        };
+      }
+    }
+
+    // Fallback/Generic HTML Scraper for OpenGraph Metadata
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
+      },
+      next: { revalidate: 3600 } // cache for 1 hour
+    });
+
+    if (!response.ok) {
+      return { title: '', description: '', error: `HTTP ${response.status}` };
+    }
+
+    const html = await response.text();
+    
+    // Extract OpenGraph/Twitter card/Description using regex to avoid heavy HTML parser libraries
+    const ogTitleMatch = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) || 
+                         html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+    
+    const ogDescMatch = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i) || 
+                        html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i);
+    
+    const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i) || 
+                      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
+
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+
+    return {
+      title: ogTitleMatch ? ogTitleMatch[1] : (titleMatch ? titleMatch[1] : ''),
+      description: ogDescMatch ? ogDescMatch[1] : (descMatch ? descMatch[1] : ''),
+      provider: isInstagram ? 'Instagram' : 'Web',
+      extractedText: `Title: ${ogTitleMatch ? ogTitleMatch[1] : ''}. Description: ${ogDescMatch ? ogDescMatch[1] : ''}`
+    };
+  } catch (error) {
+    console.error('Error extracting metadata:', error);
+    return { error: error.message };
+  }
+}
+
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { url, rawText, apiKey } = body;
+
+    // Use provided client-side apiKey, or check server environment variable
+    const activeApiKey = apiKey || process.env.GEMINI_API_KEY;
+
+    if (!activeApiKey) {
+      return NextResponse.json(
+        { error: 'Gemini API Key is required. Please set it in App Settings or as an environment variable.' },
+        { status: 400 }
+      );
+    }
+
+    let sourceText = rawText || '';
+    let extractedMeta = null;
+
+    if (url && url.startsWith('http')) {
+      extractedMeta = await extractMetadata(url);
+      if (extractedMeta && !extractedMeta.error) {
+        const metaInfo = `[Metadata Extracted from Link]
+Platform: ${extractedMeta.provider || 'Unknown'}
+Title: ${extractedMeta.title || ''}
+Description: ${extractedMeta.description || extractedMeta.title || ''}
+${extractedMeta.author ? 'Creator: ' + extractedMeta.author : ''}`;
+        
+        // Combine extracted metadata with any user-provided manual text
+        sourceText = `${metaInfo}\n\n[User Copied Caption/Notes]\n${sourceText}`;
+      }
+    }
+
+    if (!sourceText.trim()) {
+      return NextResponse.json(
+        { error: 'Please provide either a recipe link or paste details manually.' },
+        { status: 400 }
+      );
+    }
+
+    // Initialize Gemini API
+    const genAI = new GoogleGenerativeAI(activeApiKey);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json'
+      }
+    });
+
+    const prompt = `You are an expert chef and culinary visualizer. Your task is to take this recipe caption, metadata, and description, structure it into a beautiful recipe card, and generate three hand-drawn/sketched-style SVGs representing different stages of the cooking process.
+
+Source Content:
+"""
+${sourceText}
+"""
+
+Please respond with a JSON object that strictly adheres to the following JSON schema:
+{
+  "title": "Title of the recipe (make it sound premium)",
+  "prepTime": "Preparation time, e.g., 10 mins (estimate if not present)",
+  "cookTime": "Cooking time, e.g., 20 mins (estimate if not present)",
+  "servings": 2,
+  "difficulty": "Easy" | "Medium" | "Hard",
+  "category": "Dinner" | "Breakfast" | "Dessert" | "Appetizer" | "Snack" | "Drink" | "Other",
+  "description": "A compelling 1-2 sentence description of the dish, highlighting its appeal.",
+  "ingredients": [
+    {
+      "name": "Name of ingredient, e.g., Olive Oil",
+      "quantity": 2.5, // numeric value (or null if taste/to serve)
+      "unit": "tbsp" // e.g., g, ml, tbsp, tsp, piece, cup, or "" if count
+    }
+  ],
+  "instructions": [
+    "Step-by-step cooking instruction 1",
+    "Step-by-step cooking instruction 2"
+  ],
+  "nutrition": {
+    "calories": 450, // estimated calories per serving
+    "protein": "25g", // estimated protein per serving
+    "carbs": "40g", // estimated carbs per serving
+    "fat": "15g", // estimated fat per serving
+    "fiber": "4g" // estimated fiber per serving (optional, null if unsure)
+  },
+  "sketches": {
+    "ingredients": "Valid, inline SVG string representing the raw ingredients or prepped setup (e.g. carrots, onions, cutting board, oil bottle). Do not use external files or fonts. Must scale responsively with viewBox='0 0 400 400' and no static width/height. Use stylized stroke-based sketch shapes. Use #d97706 for highlight elements, #57534e for dark sketch strokes, and #eae5dc for fills or accents.",
+    "process": "Valid, inline SVG string representing the active cooking phase (e.g. pot boiling, whisk in a bowl, pan on flames, spatula stirring). Must follow the same style and color constraints with viewBox='0 0 400 400'.",
+    "finished": "Valid, inline SVG string representing the final plated dish (e.g. pasta bowl with steam, sandwich cut in half, soup, dessert). Must follow the same style and color constraints with viewBox='0 0 400 400'."
+  }
+}
+
+SVG Guidelines:
+1. Return ONLY the raw inline <svg ...>...</svg> content within the JSON properties. No markdown code blocks, backticks, or escaping issues inside the SVG string.
+2. The SVG MUST be valid XML. Close all tags.
+3. Draw a modern, minimal, aesthetic line-art sketch. Use <path>, <circle>, <rect>, <ellipse> with stroke-width of 2 to 4px. Make it look like a hand-drawn chalkboard or recipe sketch.
+4. Colors: Use stroke="#57534e" for main lines (or dark theme equivalent, but neutral dark line looks great), fill="none" or soft pastel fills matching our theme (e.g., fill="#f4f1eb" or #fef3c7), and highlight strokes/dots with stroke="#d97706" to represent spice, heat, garnish, or focal points.
+5. Do not include text elements in the SVGs to avoid font rendering issues.
+
+Ensure all ingredients have estimated numeric quantities where possible so they can be scaled.`;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    
+    // Parse response text to JSON and send it back
+    let parsedData;
+    try {
+      parsedData = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("Gemini response was not valid JSON:", responseText);
+      // Attempt to clean markdown backticks if Gemini added any despite JSON mode
+      const jsonStart = responseText.indexOf('{');
+      const jsonEnd = responseText.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        parsedData = JSON.parse(responseText.substring(jsonStart, jsonEnd + 1));
+      } else {
+        throw parseError;
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      recipe: parsedData,
+      metadata: extractedMeta
+    });
+
+  } catch (error) {
+    console.error('API Error in /api/parse:', error);
+    return NextResponse.json(
+      { error: error.message || 'An error occurred while parsing the recipe.' },
+      { status: 500 }
+    );
+  }
+}
