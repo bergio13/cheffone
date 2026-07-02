@@ -2,9 +2,9 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/authContext";
 
 export const metadata = {
-  title: "Cheffone — AI Recipe Parser from Social Videos",
+  title: "Cheffone",
   description:
-    "Paste TikTok and Instagram links to instantly parse ingredients, instructions, nutritional facts, and generate beautiful recipe sketches.",
+    "Paste TikTok and Instagram links to instantly parse ingredients, instructions, and nutritional facts.",
 };
 
 export default function RootLayout({ children }) {
