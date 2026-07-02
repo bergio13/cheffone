@@ -163,8 +163,15 @@ export default function Home() {
   const [inboxItems, setInboxItems] = useState([]);
   const [toast, setToast] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'detail'
+  const [playVideoId, setPlayVideoId] = useState(null);
 
   const hasMigratedRef = useRef(false);
+
+  // Reset video preview when active recipe changes
+  useEffect(() => {
+    setPlayVideoId(null);
+  }, [activeRecipeId]);
 
   const activeRecipe = recipes.find((r) => r.id === activeRecipeId);
 
@@ -372,6 +379,7 @@ export default function Home() {
       const updatedRecipes = [newRecipe, ...recipes];
       await saveRecipesToStorage(updatedRecipes, newRecipe);
       setActiveRecipeId(newRecipe.id);
+      setViewMode('detail');
       setAdjustedServings(newRecipe.servings || 2);
       setCheckedIngredients({});
       setUrl('');
@@ -405,6 +413,7 @@ export default function Home() {
       localStorage.setItem('cheffone_recipes', JSON.stringify(filtered));
     }
     if (activeRecipeId === id) {
+      setViewMode('list');
       if (filtered.length > 0) {
         setActiveRecipeId(filtered[0].id);
         setAdjustedServings(filtered[0].servings || 2);
@@ -655,7 +664,7 @@ export default function Home() {
       )}
 
       {/* Main Board */}
-      <main className={`${styles.mainLayout} ${!sidebarOpen ? styles.mainLayoutCollapsed : ''}`}>
+      <main className={`${styles.mainLayout} ${!sidebarOpen ? styles.mainLayoutCollapsed : ''} ${viewMode === 'detail' ? styles.mobileShowDetail : styles.mobileShowList}`}>
         {/* Sidebar - Saved Recipes */}
         <aside className={`${styles.sidebar} ${!sidebarOpen ? styles.sidebarCollapsed : ''}`}>
           <div className={styles.sidebarHeader}>
@@ -685,6 +694,7 @@ export default function Home() {
                     className={`${styles.recipeCardItem} ${activeRecipeId === r.id ? styles.recipeCardActive : ''}`}
                     onClick={() => {
                       setActiveRecipeId(r.id);
+                      setViewMode('detail');
                       setAdjustedServings(r.servings || 2);
                       setCheckedIngredients({});
                     }}
@@ -704,7 +714,7 @@ export default function Home() {
                           onClick={(e) => { e.stopPropagation(); handleShareRecipe(r); }}
                           title="Share with a friend"
                         >
-                          📤
+                          📤 Share
                         </button>
                       )}
                       <button
@@ -726,7 +736,7 @@ export default function Home() {
                 <div
                   key={r.id}
                   className={`${styles.collapsedDot} ${activeRecipeId === r.id ? styles.collapsedDotActive : ''}`}
-                  onClick={() => { setActiveRecipeId(r.id); setAdjustedServings(r.servings || 2); setSidebarOpen(true); }}
+                  onClick={() => { setActiveRecipeId(r.id); setViewMode('detail'); setAdjustedServings(r.servings || 2); setSidebarOpen(true); }}
                   title={r.title}
                 />
               ))}
@@ -745,6 +755,13 @@ export default function Home() {
             <div className={styles.recipeDetail}>
               {/* Header details */}
               <div className={styles.recipeHeaderBlock}>
+                <button
+                  className={styles.mobileBackBtn}
+                  onClick={() => setViewMode('list')}
+                  title="Back to board"
+                >
+                  ← Back to Board
+                </button>
                 <div className={styles.titleArea}>
                   <div className={styles.titleBadgeContainer}>
                     <span className={styles.categoryBadge}>{activeRecipe.category || 'Recipe'}</span>
@@ -775,6 +792,13 @@ export default function Home() {
                       +
                     </button>
                   </div>
+                  <button
+                    className={styles.detailShareBtn}
+                    onClick={() => handleShareRecipe(activeRecipe)}
+                    title="Share recipe with friends"
+                  >
+                    📤 Share with Friends
+                  </button>
                 </div>
               </div>
 
@@ -840,13 +864,28 @@ export default function Home() {
                     {/* Left Side: Embedded Video */}
                     <div className={styles.leftMediaColumn}>
                       {activeRecipe.iframeHtml ? (
-                        <div className={styles.videoCard}>
-                          <div className={styles.videoCardTab}>TIKTOK PREVIEW 🎬</div>
+                        playVideoId === activeRecipe.id ? (
+                          <div className={styles.videoCard}>
+                            <div className={styles.videoCardTab}>TIKTOK PREVIEW 🎬</div>
+                            <div
+                              className={styles.iframeContainer}
+                              dangerouslySetInnerHTML={{ __html: activeRecipe.iframeHtml }}
+                            />
+                          </div>
+                        ) : (
                           <div
-                            className={styles.iframeContainer}
-                            dangerouslySetInnerHTML={{ __html: activeRecipe.iframeHtml }}
-                          />
-                        </div>
+                            className={styles.videoFacade}
+                            onClick={() => setPlayVideoId(activeRecipe.id)}
+                            title="Tap to load video preview"
+                          >
+                            <span className={styles.videoFacadeBadge}>TIKTOK FEED 🎬</span>
+                            <div className={styles.videoFacadePlayBtn}>
+                              <span className={styles.playIcon}>▶</span>
+                            </div>
+                            <span className={styles.videoFacadeText}>Load Video Feed</span>
+                            <span className={styles.videoFacadeSub}>Tapping pulls tracking scripts and video media</span>
+                          </div>
+                        )
                       ) : activeRecipe.videoUrl ? (
                         <div className={styles.videoCard}>
                           <div className={styles.videoCardTab}>NOW PLAYING 🎬</div>
@@ -1024,6 +1063,57 @@ export default function Home() {
           )}
         </section>
       </main>
+
+      {/* Sticky Bottom Tab Bar */}
+      <nav className={styles.bottomTabBar}>
+        <button
+          className={`${styles.tabBarItem} ${viewMode === 'list' ? styles.tabBarItemActive : ''}`}
+          onClick={() => setViewMode('list')}
+        >
+          <span className={styles.tabBarIcon}>📋</span>
+          <span className={styles.tabBarLabel}>Board</span>
+        </button>
+        <button
+          className={styles.tabBarItem}
+          onClick={() => setIsImportOpen(true)}
+        >
+          <span className={styles.tabBarIcon}>⚡</span>
+          <span className={styles.tabBarLabel}>Scan</span>
+        </button>
+        <button
+          className={styles.tabBarItem}
+          onClick={() => {
+            if (!user) {
+              setIsAuthOpen(true);
+            } else {
+              setShareTarget(null);
+              setIsFriendsOpen(true);
+            }
+          }}
+        >
+          <span className={styles.tabBarIcon}>👥</span>
+          <span className={styles.tabBarLabel}>Friends</span>
+          {pendingCount > 0 && <span className={styles.tabBarBadge}>{pendingCount}</span>}
+        </button>
+        {user ? (
+          <button
+            className={styles.tabBarItem}
+            onClick={() => setIsInboxOpen(true)}
+          >
+            <span className={styles.tabBarIcon}>📬</span>
+            <span className={styles.tabBarLabel}>Inbox</span>
+            {unreadInbox > 0 && <span className={styles.tabBarBadge}>{unreadInbox}</span>}
+          </button>
+        ) : (
+          <button
+            className={styles.tabBarItem}
+            onClick={() => setIsAuthOpen(true)}
+          >
+            <span className={styles.tabBarIcon}>☁️</span>
+            <span className={styles.tabBarLabel}>Sync</span>
+          </button>
+        )}
+      </nav>
     </div>
   );
 }
