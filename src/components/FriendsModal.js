@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import styles from './FriendsModal.module.css';
 import {
-  searchUserByEmail,
+  searchUserByUsername,
   sendFriendRequest,
   getPendingRequests,
   acceptFriendRequest,
@@ -65,10 +65,10 @@ export default function FriendsModal({ currentUser, onClose, recipeToShare, onSh
     setSearchResult(null);
     setSearchMsg('');
     try {
-      const found = await searchUserByEmail(searchEmail);
+      const found = await searchUserByUsername(searchEmail);
       if (!found) {
         setSearchStatus('not_found');
-        setSearchMsg('No user found with that email.');
+        setSearchMsg('No user found with that username or email.');
       } else if (found.uid === currentUser.uid) {
         setSearchStatus('not_found');
         setSearchMsg("That's you! 😄");
@@ -261,12 +261,12 @@ export default function FriendsModal({ currentUser, onClose, recipeToShare, onSh
           {/* Add Friend */}
           {tab === 'add' && !isShareMode && (
             <div className={styles.addSection}>
-              <p className={styles.addHint}>Search by their Cheffone account email.</p>
+              <p className={styles.addHint}>Search by username (display name) or email address.</p>
               <form onSubmit={handleSearch} className={styles.searchForm}>
                 <input
-                  type="email"
+                  type="text"
                   className={styles.searchInput}
-                  placeholder="friend@email.com"
+                  placeholder="@username or email"
                   value={searchEmail}
                   onChange={(e) => {
                     setSearchEmail(e.target.value);

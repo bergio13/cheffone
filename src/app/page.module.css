@@ -12,13 +12,39 @@
   animation: fadeIn var(--transition-slow);
 }
 
+/* Subtle radial glow in the top-right corner for warmth */
+.container::before {
+  content: '';
+  position: fixed;
+  top: -180px;
+  right: -180px;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,188,13,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* Header & Branding */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 3px solid var(--text-primary);
   padding-bottom: 1.5rem;
+  position: relative;
+}
+
+/* Gradient underline — more premium than a flat border */
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-yellow) 45%, var(--accent-primary) 100%);
+  border-radius: 2px;
 }
 
 .logo {
@@ -357,10 +383,18 @@
   grid-template-columns: 330px 1fr;
   gap: 2.5rem;
   align-items: start;
+  transition: grid-template-columns 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mainLayoutCollapsed {
+  grid-template-columns: 56px 1fr;
 }
 
 @media (max-width: 992px) {
   .mainLayout {
+    grid-template-columns: 1fr;
+  }
+  .mainLayoutCollapsed {
     grid-template-columns: 1fr;
   }
 }
@@ -375,14 +409,62 @@
   border-radius: var(--border-radius-lg);
   padding: 1.75rem;
   box-shadow: var(--shadow-flat);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  /* top accent stripe */
+  background-image: linear-gradient(180deg, var(--accent-yellow) 0px, var(--accent-yellow) 4px, var(--card-bg) 4px);
+  position: sticky;
+  top: 1.5rem;
+}
+
+.sidebarCollapsed {
+  padding: 1rem 0.6rem;
+  gap: 0;
+  align-items: center;
+  border-radius: var(--border-radius-md);
+}
+
+.sidebarToggle {
+  background: var(--bg-secondary);
+  border: 2px solid var(--text-primary);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.sidebarCollapsed .sidebarToggle {
+  margin-left: 0;
+  margin-top: 0.25rem;
+}
+.sidebarToggle:hover {
+  background: var(--accent-yellow);
+  transform: scale(1.1);
 }
 
 .sidebarHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
   border-bottom: 3px solid var(--text-primary);
   padding-bottom: 1rem;
+}
+
+.sidebarCollapsed .sidebarHeader {
+  border-bottom: none;
+  padding-bottom: 0;
+  flex-direction: column;
+  gap: 0;
 }
 
 .sidebarTitle {
@@ -423,17 +505,20 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
+  border-left-width: 5px;
 }
 
 .recipeCardItem:hover {
   transform: translate(-2px, -2px);
   box-shadow: var(--shadow-flat-sm);
   background: #ffffff;
+  border-left-color: var(--accent-yellow);
 }
 
 .recipeCardActive {
   background: var(--accent-light);
   box-shadow: var(--shadow-flat-sm);
+  border-left-color: var(--accent-primary);
 }
 
 .recipeCardInfo {
@@ -744,6 +829,9 @@
   justify-content: center;
   border-bottom: 3px solid var(--text-primary);
   position: relative;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+  padding: 0 1rem;
 }
 
 .tabs {
@@ -783,10 +871,16 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: var(--accent-primary);
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-yellow));
   border: 2px solid var(--text-primary);
   border-bottom: none;
   border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+  animation: slideIn 0.2s var(--transition-fast);
+}
+
+@keyframes slideIn {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: scaleX(1); opacity: 1; }
 }
 
 .tabContent {
@@ -868,6 +962,17 @@
   overflow: hidden;
   border: 3px solid var(--text-primary);
   background: #000000;
+}
+
+.iframeContainer {
+  width: 100%;
+  max-height: 520px;
+  overflow-y: auto;
+  border-radius: var(--border-radius-sm);
+  border: 3px solid var(--text-primary);
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
 }
 
 .videoElement {
@@ -1114,8 +1219,15 @@
 .stepConnector {
   width: 3px;
   flex: 1;
-  background: var(--text-primary);
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--text-primary) 0px,
+    var(--text-primary) 5px,
+    transparent 5px,
+    transparent 11px
+  );
   margin-top: 0.5rem;
+  opacity: 0.35;
 }
 
 .stepContent {
@@ -1147,7 +1259,7 @@
 }
 
 .nutritionCard {
-  background: #ffffff;
+  background: var(--card-bg);
   border: 3px solid var(--text-primary);
   padding: 1.75rem 1.5rem;
   border-radius: var(--border-radius-md);
@@ -1165,6 +1277,134 @@
   transform: translate(-2px, -2px);
   box-shadow: var(--shadow-flat);
 }
+
+/* Per-macro subtle tints */
+.calCard { background: linear-gradient(160deg, #fff5f5 0%, var(--card-bg) 60%); }
+.protCard { background: linear-gradient(160deg, #f0fff4 0%, var(--card-bg) 60%); }
+.carbCard { background: linear-gradient(160deg, #fffbeb 0%, var(--card-bg) 60%); }
+.fatCard  { background: linear-gradient(160deg, #f8f8f8 0%, var(--card-bg) 60%); }
+.fibCard  { background: linear-gradient(160deg, #f3e8ff 0%, var(--card-bg) 60%); }
+
+/* ─── Health Analysis Panel ─────────────────────────────────────────────── */
+
+.healthBanner {
+  background: var(--card-bg);
+  border: 3px solid var(--text-primary);
+  border-radius: var(--border-radius-md);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: var(--shadow-flat-sm);
+}
+
+.healthScoreWrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.healthScoreNum {
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.healthScoreOf {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.healthLabel {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.healthScoreBar {
+  height: 10px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--text-primary);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.healthScoreFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-yellow), var(--success));
+  border-radius: 99px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.healthSummary {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  border-top: 2px solid var(--bg-tertiary);
+  padding-top: 0.75rem;
+  margin: 0;
+}
+
+/* Benefits & Warnings chip row */
+.healthChipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.benefitChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #d1fae5;
+  color: #065f46;
+  border: 1.5px solid #6ee7b7;
+  padding: 0.3rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.warningChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1.5px solid #fca5a5;
+  padding: 0.3rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Diet Tags */
+.dietTagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.dietTag {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 2px solid var(--text-primary);
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: var(--shadow-flat-sm);
+}
+
+
 
 .nutritionVal {
   font-size: 2.5rem;
@@ -1213,7 +1453,7 @@
 /* Empty Detail State */
 .emptyDetailState {
   background: var(--card-bg);
-  border: 3px dashed var(--text-secondary);
+  border: 3px solid var(--text-primary);
   border-radius: var(--border-radius-lg);
   padding: 6rem 2rem;
   display: flex;
@@ -1222,8 +1462,25 @@
   justify-content: center;
   text-align: center;
   gap: 1rem;
-  box-shadow: var(--shadow-flat-sm);
+  box-shadow: var(--shadow-flat);
+  position: relative;
+  overflow: hidden;
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(255,188,13,0.07) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(218,41,28,0.05) 0%, transparent 50%);
 }
+
+/* Decorative corner stamps */
+.emptyDetailState::before,
+.emptyDetailState::after {
+  content: '🍔';
+  position: absolute;
+  font-size: 5rem;
+  opacity: 0.04;
+  pointer-events: none;
+}
+.emptyDetailState::before { top: -0.5rem; left: -1rem; transform: rotate(-20deg); }
+.emptyDetailState::after  { bottom: -0.5rem; right: -1rem; transform: rotate(15deg); }
 
 .emptyStateIcon {
   font-size: 4.5rem;
@@ -1785,4 +2042,92 @@
   from { opacity: 0; transform: translateX(-50%) translateY(10px); }
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+
+/* ─── Collapsed Sidebar Mini-Dots ────────────────────────────────────────── */
+
+.collapsedDots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  width: 100%;
+}
+
+.collapsedDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  border: 2px solid var(--text-primary);
+  cursor: pointer;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+  flex-shrink: 0;
+}
+.collapsedDot:hover {
+  transform: scale(1.3);
+  background: var(--accent-yellow);
+}
+.collapsedDotActive {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary);
+  transform: scale(1.15);
+}
+
+.collapsedMore {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.15rem 0.4rem;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--text-secondary);
+  border-radius: 99px;
+  transition: color var(--transition-fast), background var(--transition-fast);
+  text-align: center;
+}
+.collapsedMore:hover {
+  color: var(--text-primary);
+  background: var(--accent-yellow);
+  border-color: var(--text-primary);
+}
+
+/* ─── Second atmospheric glow (bottom-left) ──────────────────────────────── */
+
+.container::after {
+  content: '';
+  position: fixed;
+  bottom: -200px;
+  left: -200px;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(218,41,28,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Recipe card entrance animation ─────────────────────────────────────── */
+
+.recipeCardItem {
+  animation: cardIn 0.25s var(--transition-fast) both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ─── Section heading underline accent ───────────────────────────────────── */
+
+.sectionHeading::after {
+  content: '';
+  display: block;
+  width: 2rem;
+  height: 3px;
+  background: var(--accent-primary);
+  border-radius: 2px;
+  margin-top: 0.35rem;
+}
+
 

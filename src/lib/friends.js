@@ -18,9 +18,12 @@ import { db } from './firebase';
 export async function createUserProfile(user) {
   const ref = doc(db, 'users', user.uid);
   const snap = await getDoc(ref);
+  const displayName = user.displayName || '';
   const data = {
     uid: user.uid,
-    displayName: user.displayName || '',
+    displayName,
+    // Normalized for case-insensitive username search
+    usernameLower: displayName.toLowerCase().trim(),
     email: user.email || '',
     photoURL: user.photoURL || '',
   };
@@ -32,15 +35,29 @@ export async function createUserProfile(user) {
 }
 
 // ── Search users ───────────────────────────────────────────────────────────────
-export async function searchUserByEmail(email) {
-  const q = query(
+// Searches by username (displayName, case-insensitive) first, then by exact email.
+export async function searchUserByUsername(input) {
+  const normalized = input.toLowerCase().trim();
+
+  // Try username match first
+  const nameQ = query(
     collection(db, 'users'),
-    where('email', '==', email.toLowerCase().trim())
+    where('usernameLower', '==', normalized)
   );
-  const snap = await getDocs(q);
-  if (snap.empty) return null;
-  return snap.docs[0].data();
+  const nameSnap = await getDocs(nameQ);
+  if (!nameSnap.empty) return nameSnap.docs[0].data();
+
+  // Fall back to email
+  const emailQ = query(
+    collection(db, 'users'),
+    where('email', '==', normalized)
+  );
+  const emailSnap = await getDocs(emailQ);
+  if (!emailSnap.empty) return emailSnap.docs[0].data();
+
+  return null;
 }
+
 
 // ── Friend requests ────────────────────────────────────────────────────────────
 export async function sendFriendRequest(fromUser, toUid) {
@@ -140,3 +157,44 @@ export async function markInboxSeen(uid, shareId) {
 export async function deleteInboxItem(uid, shareId) {
   await deleteDoc(doc(db, 'users', uid, 'inbox', shareId));
 }
+
+// ── Daily Parse Limits ────────────────────────────────────────────────────────
+export async function getParseLimitStatus(uid, limit = 5) {
+  const ref = doc(db, 'users', uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return { allowed: true, count: 0, limit };
+
+  const data = snap.data();
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+  if (data.lastParseDate === today) {
+    const currentCount = data.parseCountToday || 0;
+    return {
+      allowed: currentCount < limit,
+      count: currentCount,
+      limit
+    };
+  }
+
+  return { allowed: true, count: 0, limit };
+}
+
+export async function incrementParseCount(uid) {
+  const ref = doc(db, 'users', uid);
+  const snap = await getDoc(ref);
+  const today = new Date().toISOString().split('T')[0];
+
+  if (!snap.exists()) return;
+  const data = snap.data();
+
+  let newCount = 1;
+  if (data.lastParseDate === today) {
+    newCount = (data.parseCountToday || 0) + 1;
+  }
+
+  await updateDoc(ref, {
+    lastParseDate: today,
+    parseCountToday: newCount
+  });
+}
+

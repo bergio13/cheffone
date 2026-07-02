@@ -35,9 +35,9 @@ async function downloadVideoAsBase64(url) {
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
-    // Limit to 10MB to avoid Vercel serverless size/timeout limitations
-    if (buffer.length > 10 * 1024 * 1024) {
-      console.warn("Video size exceeds 10MB limit, skipping multimodal input.");
+    // Limit to 30MB to allow complete video parsing by Gemini
+    if (buffer.length > 30 * 1024 * 1024) {
+      console.warn("Video size exceeds 30MB limit, skipping multimodal input.");
       return null;
     }
     
@@ -57,11 +57,11 @@ async function extractMetadata(url) {
     const isTikTok = url.includes('tiktok.com');
     const isInstagram = url.includes('instagram.com');
 
-    // RapidAPI Scraper bypass if configured in .env.local
+    // RapidAPI Scraper bypass if configured in .env.local (Instagram only)
     const rapidApiKey = process.env.RAPIDAPI_KEY?.trim();
     const rapidApiEndpoint = process.env.RAPIDAPI_ENDPOINT?.trim();
 
-    if (rapidApiKey && rapidApiEndpoint) {
+    if (isInstagram && rapidApiKey && rapidApiEndpoint) {
       try {
         console.log(`Using RapidAPI to scrape URL: ${url}`);
         const cleanEndpoint = rapidApiEndpoint.endsWith('=') || rapidApiEndpoint.includes('?') ? rapidApiEndpoint : `${rapidApiEndpoint}?url=`;
@@ -92,7 +92,7 @@ async function extractMetadata(url) {
             return {
               title: data.title || '',
               description: caption,
-              provider: isInstagram ? 'Instagram' : (isTikTok ? 'TikTok' : 'Web'),
+              provider: 'Instagram',
               extractedText: caption,
               videoUrl: videoUrl || ''
             };
@@ -106,19 +106,58 @@ async function extractMetadata(url) {
     }
 
     if (isTikTok) {
-      // Use TikTok's official public oEmbed API
-      const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
-      const response = await fetch(oembedUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-      });
-      if (response.ok) {
-        const data = await response.json();
+      // 1. Fetch metadata from official public oEmbed API (always works, free, reliable)
+      console.log("Fetching TikTok oEmbed metadata...");
+      let oembedData = null;
+      try {
+        const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
+        const response = await fetch(oembedUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        });
+        if (response.ok) {
+          oembedData = await response.json();
+        }
+      } catch (err) {
+        console.error("Failed to fetch TikTok oEmbed metadata:", err);
+      }
+
+      // 2. Fetch direct video play URL using the subscribed Lundehund tiktok-api23 downloader
+      const rapidApiKey = process.env.RAPIDAPI_KEY?.trim();
+      let directPlayUrl = '';
+
+      if (rapidApiKey) {
+        try {
+          console.log(`Querying Lundehund tiktok-api23 downloader for: ${url}`);
+          const apiResponse = await fetch(`https://tiktok-api23.p.rapidapi.com/api/download/video?url=${encodeURIComponent(url)}`, {
+            headers: {
+              'x-rapidapi-key': rapidApiKey,
+              'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com'
+            },
+            next: { revalidate: 3600 }
+          });
+          
+          if (apiResponse.ok) {
+            const resData = await apiResponse.json();
+            directPlayUrl = resData.play || resData.play_watermark || '';
+            console.log("tiktok-api23 successfully resolved direct video play URL:", directPlayUrl ? "Yes" : "No");
+          } else {
+            console.warn(`tiktok-api23 downloader responded with status: ${apiResponse.status}`);
+          }
+        } catch (rapidErr) {
+          console.error("Failed to query tiktok-api23 downloader:", rapidErr);
+        }
+      }
+
+      if (oembedData) {
         return {
-          title: data.title || '',
-          author: data.author_name || '',
+          title: oembedData.title || '',
+          description: oembedData.title || '',
+          author: oembedData.author_name || '',
           provider: 'TikTok',
-          htmlContent: data.html || '',
-          rawMetadata: JSON.stringify(data)
+          htmlContent: directPlayUrl ? '' : (oembedData.html || ''), // skip iframe if we have native mp4
+          extractedText: `Title: ${oembedData.title || ''}. Author: ${oembedData.author_name || ''}`,
+          videoUrl: directPlayUrl,
+          rawMetadata: JSON.stringify(oembedData)
         };
       }
     }
@@ -180,6 +219,20 @@ export async function POST(request) {
     let sourceText = rawText || '';
     let extractedMeta = null;
 
+    if (url && url.startsWith('http')) {
+      const allowedDomains = ['instagram.com', 'instagr.am', 'tiktok.com', 'vm.tiktok.com'];
+      const parsedUrl = new URL(url);
+      const host = parsedUrl.hostname.toLowerCase();
+      const isAllowed = allowedDomains.some(domain => host === domain || host.endsWith('.' + domain));
+
+      if (!isAllowed) {
+        return NextResponse.json(
+          { error: 'Invalid link. Only Instagram and TikTok links are supported.' },
+          { status: 400 }
+        );
+      }
+    }
+
     const isInstagramUrl = url && url.includes('instagram.com');
     const isRapidApiConfigured = process.env.RAPIDAPI_KEY?.trim() && process.env.RAPIDAPI_ENDPOINT?.trim();
 
@@ -225,13 +278,14 @@ ${extractedMeta.author ? 'Creator: ' + extractedMeta.author : ''}`;
     // Initialize Gemini API
     const genAI = new GoogleGenerativeAI(activeApiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.1-flash-lite',
       generationConfig: {
         responseMimeType: 'application/json'
       }
     });
 
-    const prompt = `You are an expert chef. Your task is to take this recipe caption, metadata, and description, and structure it into a beautiful recipe card.
+
+    const prompt = `You are an expert chef and certified nutritionist. Your task is to take this recipe caption, metadata, and description, and structure it into a complete recipe card with accurate nutritional analysis.
 
 Source Content:
 """
@@ -244,14 +298,14 @@ Please respond with a JSON object that strictly adheres to the following JSON sc
   "prepTime": "Preparation time, e.g., 10 mins (estimate if not present)",
   "cookTime": "Cooking time, e.g., 20 mins (estimate if not present)",
   "servings": 2,
-  "difficulty": "Easy" | "Medium" | "Hard",
-  "category": "Dinner" | "Breakfast" | "Dessert" | "Appetizer" | "Snack" | "Drink" | "Other",
+  "difficulty": "Easy | Medium | Hard",
+  "category": "Dinner | Breakfast | Dessert | Appetizer | Snack | Drink | Other",
   "description": "A compelling 1-2 sentence description of the dish, highlighting its appeal.",
   "ingredients": [
     {
       "name": "Name of ingredient, e.g., Olive Oil",
-      "quantity": 2.5, // numeric value (or null if taste/to serve)
-      "unit": "tbsp" // e.g., g, ml, tbsp, tsp, piece, cup, or "" if count
+      "quantity": 2.5,
+      "unit": "tbsp"
     }
   ],
   "instructions": [
@@ -259,15 +313,31 @@ Please respond with a JSON object that strictly adheres to the following JSON sc
     "Step-by-step cooking instruction 2"
   ],
   "nutrition": {
-    "calories": 450, // estimated calories per serving
-    "protein": "25g", // estimated protein per serving
-    "carbs": "40g", // estimated carbs per serving
-    "fat": "15g", // estimated fat per serving
-    "fiber": "4g" // estimated fiber per serving (optional, null if unsure)
+    "calories": 450,
+    "protein": "25g",
+    "carbs": "40g",
+    "fat": "15g",
+    "fiber": "4g",
+    "sodium": "620mg",
+    "sugar": "8g",
+    "healthScore": 7,
+    "healthLabel": "Moderately Healthy",
+    "healthSummary": "2-3 sentence plain-language assessment of the dish overall healthiness, mentioning what makes it good or bad for the diet.",
+    "benefits": ["High in protein", "Rich in antioxidants"],
+    "warnings": ["High in sodium", "Contains gluten", "High in saturated fat"],
+    "dietTags": ["Gluten-free", "High-protein", "Low-carb"]
   }
 }
 
+Guidelines for the health analysis:
+- healthScore: integer 1 (very unhealthy) to 10 (extremely healthy)
+- healthLabel: one of: "Very Unhealthy" | "Unhealthy" | "Moderately Unhealthy" | "Neutral" | "Moderately Healthy" | "Healthy" | "Very Healthy"
+- benefits: list genuine nutritional positives (max 4 items)
+- warnings: list genuine concerns — high sodium, saturated fat, allergens, high sugar, ultra-processed ingredients (max 4 items, use empty array if none)
+- dietTags: only use applicable tags from: Vegan, Vegetarian, Gluten-free, Dairy-free, Keto, Paleo, Low-carb, High-protein, Low-fat, Low-sodium, Nut-free
+
 Ensure all ingredients have estimated numeric quantities where possible so they can be scaled.`;
+
 
     let contents = [];
     if (extractedMeta?.videoUrl) {
