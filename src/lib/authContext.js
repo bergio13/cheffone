@@ -10,6 +10,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
+import { createUserProfile } from './friends';
 
 const AuthContext = createContext(null);
 
@@ -23,16 +24,22 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
+  const signInWithGoogle = async () => {
+    const result = await signInWithPopup(auth, googleProvider);
+    await createUserProfile(result.user);
+    return result;
+  };
 
-  const signInWithEmail = (email, password) =>
-    signInWithEmailAndPassword(auth, email, password);
+  const signInWithEmail = async (email, password) => {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    await createUserProfile(result.user);
+    return result;
+  };
 
   const signUpWithEmail = async (email, password, displayName) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
-    if (displayName) {
-      await updateProfile(result.user, { displayName });
-    }
+    if (displayName) await updateProfile(result.user, { displayName });
+    await createUserProfile({ ...result.user, displayName: displayName || '' });
     return result;
   };
 

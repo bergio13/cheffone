@@ -14,6 +14,9 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import FriendsModal from '@/components/FriendsModal';
+import InboxModal from '@/components/InboxModal';
+import { getFriends, getPendingRequests, getInbox, shareRecipeWithFriend } from '@/lib/friends';
 
 // Appetizing loader tips to rotate while parsing
 const LOADER_TIPS = [
@@ -166,7 +169,21 @@ export default function Home() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // Social state
+  const [isFriendsOpen, setIsFriendsOpen] = useState(false);
+  const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const [shareTarget, setShareTarget] = useState(null); // recipe being shared
+  const [friends, setFriends] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [inboxItems, setInboxItems] = useState([]);
+  const [toast, setToast] = useState('');
+
   const hasMigratedRef = useRef(false);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
+  };
 
   // ── Firestore helpers ──────────────────────────────────────────────────────
   const getUserRecipesRef = (uid) => collection(db, 'users', uid, 'recipes');
@@ -222,6 +239,10 @@ export default function Home() {
     if (user === undefined) return; // still loading
     if (user) {
       migrateLocalToFirestore(user.uid).then(() => loadFromFirestore(user.uid));
+      // Load social data
+      getFriends(user.uid).then(setFriends);
+      getPendingRequests(user.uid).then(setPendingRequests);
+      getInbox(user.uid).then(setInboxItems);
     } else {
       // Not logged in — load from localStorage
       const saved = localStorage.getItem('cheffone_recipes');
@@ -237,6 +258,9 @@ export default function Home() {
           console.error('Failed to parse saved recipes:', e);
         }
       }
+      setFriends([]);
+      setPendingRequests([]);
+      setInboxItems([]);
     }
   }, [user]);
 
@@ -353,6 +377,26 @@ export default function Home() {
 
   const triggerPrint = () => window.print();
 
+  // ── Social handlers ────────────────────────────────────────────────────────
+  const handleShareRecipe = (recipe) => {
+    if (!user) { setIsAuthOpen(true); return; }
+    setShareTarget(recipe);
+    setIsFriendsOpen(true);
+  };
+
+  const handleSaveInboxRecipe = async (recipe) => {
+    const newRecipe = { ...recipe, id: Date.now().toString(), savedFromFriend: true };
+    const updatedRecipes = [newRecipe, ...recipes];
+    await saveRecipesToStorage(updatedRecipes, newRecipe);
+    setActiveRecipeId(newRecipe.id);
+    setAdjustedServings(newRecipe.servings || 2);
+    setIsInboxOpen(false);
+    showToast('Recipe saved to your collection! 🍳');
+  };
+
+  const unreadInbox = inboxItems.filter((i) => !i.seen).length;
+  const pendingCount = pendingRequests.length;
+
   // ── User avatar chip ───────────────────────────────────────────────────────
   const { signOut } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -406,6 +450,32 @@ export default function Home() {
       {/* Auth Modal */}
       {isAuthOpen && <AuthModal onClose={() => setIsAuthOpen(false)} />}
 
+      {/* Friends Modal */}
+      {isFriendsOpen && (
+        <FriendsModal
+          currentUser={user}
+          onClose={() => { setIsFriendsOpen(false); setShareTarget(null); }}
+          recipeToShare={shareTarget}
+          onShared={(friendName) => {
+            showToast(`Recipe shared with ${friendName}! 📤`);
+          }}
+        />
+      )}
+
+      {/* Inbox Modal */}
+      {isInboxOpen && (
+        <InboxModal
+          currentUser={user}
+          onClose={() => setIsInboxOpen(false)}
+          onSaveRecipe={handleSaveInboxRecipe}
+        />
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className={styles.toast}>{toast}</div>
+      )}
+
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.logo}>
@@ -415,6 +485,26 @@ export default function Home() {
           </div>
         </div>
         <div className={styles.headerActions}>
+          {user && (
+            <>
+              <button
+                className={styles.socialBtn}
+                onClick={() => { setShareTarget(null); setIsFriendsOpen(true); }}
+                title="Friends"
+              >
+                👥
+                {pendingCount > 0 && <span className={styles.socialBadge}>{pendingCount}</span>}
+              </button>
+              <button
+                className={styles.socialBtn}
+                onClick={() => setIsInboxOpen(true)}
+                title="Recipe Inbox"
+              >
+                📬
+                {unreadInbox > 0 && <span className={styles.socialBadge}>{unreadInbox}</span>}
+              </button>
+            </>
+          )}
           <UserChip />
           <button
             onClick={() => setIsImportOpen(true)}
@@ -548,13 +638,24 @@ export default function Home() {
                       <span>🏷️ {r.category}</span>
                     </div>
                   </div>
-                  <button
-                    className={styles.deleteButton}
-                    onClick={(e) => handleDeleteRecipe(r.id, e)}
-                    title="Delete recipe"
-                  >
-                    ✕
-                  </button>
+                  <div className={styles.recipeCardActions}>
+                    {user && (
+                      <button
+                        className={styles.shareButton}
+                        onClick={(e) => { e.stopPropagation(); handleShareRecipe(r); }}
+                        title="Share with a friend"
+                      >
+                        📤
+                      </button>
+                    )}
+                    <button
+                      className={styles.deleteButton}
+                      onClick={(e) => handleDeleteRecipe(r.id, e)}
+                      title="Delete recipe"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               ))
             )}

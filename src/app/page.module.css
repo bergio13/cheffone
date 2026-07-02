@@ -1694,3 +1694,95 @@
 .authToggle button:hover {
   color: var(--text-primary);
 }
+
+/* ─── Social Buttons & Badges ────────────────────────────────────────────── */
+
+.socialBtn {
+  position: relative;
+  background: var(--card-bg);
+  border: 2px solid var(--text-primary);
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  font-size: 1.15rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-flat-sm);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+  flex-shrink: 0;
+}
+.socialBtn:hover {
+  box-shadow: var(--shadow-flat);
+  transform: translateY(-1px);
+}
+
+.socialBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--accent-primary);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 900;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 99px;
+  border: 2px solid var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+/* Share + Delete buttons row on recipe card */
+.recipeCardActions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.shareButton {
+  background: transparent;
+  border: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  opacity: 0.55;
+  transition: opacity var(--transition-base), background var(--transition-base);
+  line-height: 1;
+}
+.shareButton:hover {
+  opacity: 1;
+  background: rgba(0,0,0,0.06);
+}
+
+/* ─── Toast Notification ─────────────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-primary);
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 99px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  z-index: 9999;
+  animation: toastIn 0.3s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
