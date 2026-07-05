@@ -1629,113 +1629,7 @@
   animation: fadeIn var(--transition-fast);
 }
 
-/* Mobile Responsiveness & Aesthetics Optimization Overrides */
-@media (max-width: 992px) {
-  .mainLayout {
-    grid-template-columns: 1fr;
-    gap: 1.75rem;
-  }
-  .sidebar {
-    order: 2; /* Push saved recipes list to the bottom */
-  }
-  .recipeDetailContainer {
-    order: 1; /* Keep the active cooking card at the top */
-  }
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 1.5rem 1rem;
-    gap: 1.75rem;
-  }
-  .recipeDetail {
-    padding: 1.75rem 1.25rem;
-    gap: 2rem;
-  }
-  .recipeTitle {
-    font-size: 2.25rem;
-  }
-  .recipeDescription {
-    font-size: 1.05rem;
-    padding: 0.65rem 0.85rem;
-  }
-  .metadataGrid {
-    gap: 1.25rem;
-  }
-  .culinaryGrid {
-    grid-template-columns: 1fr !important;
-    gap: 2.25rem;
-  }
-  .leftMediaColumn {
-    align-items: center;
-  }
-  .videoCard {
-    width: 100%;
-  }
-  .videoPlayerWrapper {
-    max-width: 100%;
-    width: 100%;
-  }
-}
-
-@media (max-width: 600px) {
-  .header {
-    flex-direction: column;
-    gap: 1.25rem;
-    align-items: stretch;
-    text-align: center;
-  }
-  .logo {
-    justify-content: center;
-  }
-  .logoText h1 {
-    font-size: 2.25rem;
-  }
-  .primaryButton {
-    width: 100%;
-    padding: 1rem;
-  }
-  .modalContent {
-    padding: 1.75rem 1.25rem;
-    max-width: 95%;
-  }
-  .parseTitle {
-    font-size: 1.75rem;
-  }
-  .urlInputContainer {
-    width: 100%;
-  }
-  .inputGroup {
-    flex-direction: column;
-    width: 100%;
-    gap: 0.75rem;
-  }
-  .tabs {
-    gap: 1rem;
-    width: 100%;
-  }
-  .tab {
-    font-size: 0.95rem;
-    flex: 1;
-    justify-content: center;
-  }
-  .recipeHeaderBlock {
-    flex-direction: column;
-    gap: 1.25rem;
-    align-items: stretch;
-  }
-  .headerControls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
-  }
-  .servingAdjuster {
-    justify-content: space-between;
-  }
-  .printButton {
-    justify-content: center;
-  }
-}
+/* Scattered media query block moved to bottom override section for cascade hierarchy */
 
 /* ─── Auth & Header Actions ──────────────────────────────────────────────── */
 
@@ -2269,7 +2163,53 @@
 }
 
 /* ─── Mobile Responsive Overrides ────────────────────────────────────────── */
+@media (max-width: 992px) {
+  .mainLayout {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+  .sidebar {
+    order: 2; /* Push saved recipes list to the bottom */
+  }
+  .recipeDetailContainer {
+    order: 1; /* Keep the active cooking card at the top */
+  }
+}
+
 @media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem 90px 1rem !important; /* Spaced for sticky tab bar */
+    gap: 1.75rem;
+  }
+  .recipeDetail {
+    padding: 1.75rem 1.25rem;
+    gap: 2rem;
+  }
+  .recipeTitle {
+    font-size: 2.25rem;
+  }
+  .recipeDescription {
+    font-size: 1.05rem;
+    padding: 0.65rem 0.85rem;
+  }
+  .metadataGrid {
+    gap: 1.25rem;
+  }
+  .culinaryGrid {
+    grid-template-columns: 1fr !important;
+    gap: 2.25rem;
+  }
+  .leftMediaColumn {
+    align-items: center;
+  }
+  .videoCard {
+    width: 100%;
+  }
+  .videoPlayerWrapper {
+    max-width: 100%;
+    width: 100%;
+  }
+
   /* Dynamic View Switching */
   .mobileShowList .sidebar {
     display: flex !important;
@@ -2287,17 +2227,12 @@
     width: 100% !important;
   }
 
-  /* Container adjustments for bottom bar */
-  .container {
-    padding: 1.5rem 1rem 90px 1rem !important;
-  }
-
   .mainLayout {
     grid-template-columns: 1fr !important;
     gap: 1rem !important;
   }
 
-  /* Mobile Header Simplification */
+  /* Mobile Header row baseline for tablet screen widths */
   .header {
     flex-direction: row !important;
     justify-content: space-between !important;
@@ -2555,7 +2490,87 @@
   }
 }
 
-/* Specific narrow viewport optimizations */
+@media (max-width: 600px) {
+  /* Spacing & Layout clean up for mobile screens */
+  .header {
+    flex-direction: column !important;
+    gap: 1rem !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding-bottom: 1.25rem !important;
+  }
+
+  .logo {
+    justify-content: center !important;
+    gap: 0.75rem !important;
+  }
+
+  .fastFoodIcon {
+    font-size: 2.5rem !important;
+  }
+
+  .logoText h1 {
+    font-size: 2rem !important;
+    text-shadow: 2px 2px 0 var(--text-primary) !important;
+  }
+
+  .primaryButton {
+    width: 100% !important;
+    padding: 1rem !important;
+  }
+
+  .modalContent {
+    padding: 1.75rem 1.25rem calc(1.75rem + env(safe-area-inset-bottom, 16px)) 1.25rem !important;
+    max-width: 100% !important;
+  }
+
+  .parseTitle {
+    font-size: 1.5rem !important;
+  }
+
+  .urlInputContainer {
+    width: 100% !important;
+  }
+
+  .inputGroup {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 0.75rem !important;
+  }
+
+  .tabs {
+    gap: 0.5rem !important;
+    width: 100% !important;
+  }
+
+  .tab {
+    font-size: 0.85rem !important;
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 0.75rem 0.25rem !important;
+  }
+
+  .recipeHeaderBlock {
+    flex-direction: column !important;
+    gap: 1rem !important;
+    align-items: stretch !important;
+  }
+
+  .headerControls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+
+  .servingAdjuster {
+    justify-content: space-between !important;
+  }
+
+  .printButton {
+    justify-content: center !important;
+  }
+}
+
 @media (max-width: 480px) {
   .userName {
     display: none !important;
