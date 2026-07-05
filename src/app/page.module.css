@@ -573,7 +573,7 @@
 }
 
 .emptyState {
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   font-size: 0.95rem;
   text-align: center;
   padding: 3rem 1.5rem;
@@ -861,7 +861,7 @@
 }
 
 .activeTab {
-  color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .activeTab::after {
@@ -973,6 +973,11 @@
   background: var(--card-bg);
   display: flex;
   justify-content: center;
+}
+
+.iframeContainer iframe {
+  max-width: 100% !important;
+  box-sizing: border-box;
 }
 
 .videoElement {
@@ -2422,6 +2427,7 @@
   .detailShareBtn {
     width: 100% !important;
     justify-content: center !important;
+    min-height: 48px !important;
   }
 
   .sidebarToggle {
@@ -2468,8 +2474,8 @@
   }
 
   .adjustBtn {
-    width: 44px !important;
-    height: 44px !important;
+    width: 48px !important;
+    height: 48px !important;
     font-size: 1.35rem !important;
     border-radius: 50% !important;
     background: var(--card-bg) !important;
@@ -2543,9 +2549,40 @@
   .modalClose {
     top: 1rem !important;
     right: 1.25rem !important;
-    width: 36px !important;
-    height: 36px !important;
-    font-size: 1rem !important;
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.2rem !important;
+  }
+}
+
+/* Specific narrow viewport optimizations */
+@media (max-width: 480px) {
+  .userName {
+    display: none !important;
+  }
+  .userChip {
+    padding: 0.25rem !important;
+  }
+  .logoText h1 {
+    font-size: 1.85rem !important;
+  }
+  .mobileBackBtn {
+    min-height: 48px !important;
+    font-size: 0.95rem !important;
+    padding: 0.6rem 1.15rem !important;
+  }
+  .nutritionGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+  .nutritionCard {
+    padding: 1rem 0.5rem !important;
+  }
+  .nutritionVal {
+    font-size: 1.85rem !important;
+  }
+  .nutritionLabel {
+    font-size: 0.75rem !important;
   }
 }
 

@@ -52,7 +52,9 @@
   justify-content: center;
   transition: transform 0.15s;
 }
-.closeBtn:hover { transform: scale(1.1); }
+@media (hover: hover) {
+  .closeBtn:hover { transform: scale(1.1); }
+}
 
 .header {
   display: flex;
@@ -189,8 +191,13 @@
   box-shadow: 2px 2px 0 var(--text-primary, #1a0a00);
   transition: transform 0.15s, box-shadow 0.15s;
 }
-.saveBtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 3px 3px 0 var(--text-primary, #1a0a00); }
-.saveBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+@media (hover: hover) {
+  .saveBtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 3px 3px 0 var(--text-primary, #1a0a00); }
+}
+.saveBtn:active {
+  transform: translateY(1px);
+  box-shadow: 1px 1px 0 var(--text-primary, #1a0a00);
+}
 .savedBtn { background: #16a34a !important; border-color: #166534 !important; box-shadow: 2px 2px 0 #166534 !important; }
 
 .discardBtn {
@@ -204,7 +211,12 @@
   cursor: pointer;
   transition: background 0.15s;
 }
-.discardBtn:hover { background: rgba(0,0,0,0.07); }
+@media (hover: hover) {
+  .discardBtn:hover { background: rgba(0,0,0,0.07); }
+}
+.discardBtn:active {
+  background: rgba(0,0,0,0.15);
+}
 
 /* Empty & loading */
 .emptyState {
@@ -230,3 +242,57 @@
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Mobile Touch Target and Spacing Optimization & Bottom Sheet Layout */
+@media (max-width: 600px) {
+  .overlay {
+    align-items: flex-end !important;
+  }
+  
+  .modal {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    padding: 2.25rem 1.25rem calc(2.25rem + env(safe-area-inset-bottom, 16px)) 1.25rem !important;
+    margin: 0 !important;
+    max-height: 80vh !important;
+    box-shadow: var(--shadow-flat-lg) !important;
+    transform: translateY(0);
+    animation: slideUp 0.32s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .closeBtn {
+    top: 1rem !important;
+    right: 1.25rem !important;
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.1rem !important;
+  }
+
+  .saveBtn {
+    min-height: 48px !important;
+    padding: 0.75rem 1.25rem !important;
+  }
+
+  .discardBtn {
+    min-height: 48px !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  .inboxCard {
+    padding: 0.85rem !important;
+    gap: 0.6rem !important;
+  }
+}
