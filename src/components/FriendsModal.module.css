@@ -45,7 +45,7 @@
   top: 1rem;
   right: 1rem;
   background: var(--text-primary, #1a0a00);
-  color: #fff;
+  color: var(--bg-primary, #fff8f0);
   border: none;
   border-radius: 50%;
   width: 30px;
@@ -122,7 +122,7 @@
 }
 .activeTab {
   background: var(--text-primary, #1a0a00);
-  color: #fff;
+  color: var(--bg-primary, #fff8f0);
   border-color: var(--text-primary, #1a0a00);
 }
 
@@ -159,13 +159,13 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  border: 2px solid rgba(0,0,0,0.08);
+  border: 2px solid var(--bg-tertiary);
   border-radius: 12px;
-  background: rgba(255,255,255,0.5);
+  background: var(--bg-secondary);
   transition: border-color 0.15s, background 0.15s;
 }
 @media (hover: hover) {
-  .friendCard:hover { border-color: var(--text-primary, #1a0a00); background: rgba(255,255,255,0.8); }
+  .friendCard:hover { border-color: var(--text-primary, #1a0a00); background: var(--bg-primary); }
 }
 
 .avatar {
@@ -245,7 +245,7 @@
   padding: 0.75rem;
   border: 2px solid var(--accent-yellow, #ffe033);
   border-radius: 12px;
-  background: rgba(255, 224, 51, 0.08);
+  background: var(--accent-light);
 }
 .requestAvatar { flex-shrink: 0; }
 .requestActions { display: flex; gap: 0.4rem; flex-shrink: 0; }
@@ -310,7 +310,7 @@
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
-  background: #fff;
+  background: var(--bg-primary);
   color: var(--text-primary, #1a0a00);
   transition: box-shadow 0.15s;
 }
@@ -335,7 +335,7 @@
   padding: 0.75rem;
   border: 2px solid var(--text-primary, #1a0a00);
   border-radius: 12px;
-  background: #fff;
+  background: var(--bg-secondary);
   box-shadow: 3px 3px 0 var(--text-primary, #1a0a00);
 }
 
