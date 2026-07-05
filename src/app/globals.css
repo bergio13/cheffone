@@ -73,6 +73,34 @@
   }
 }
 
+[data-theme="dark"] {
+  --bg-primary: #120907;        /* Charcoal grill black */
+  --bg-secondary: #221411;      /* Flame-smoke brown */
+  --bg-tertiary: #38211c;
+  --card-bg: #1f120f;
+  --card-border: #fdf9f4;
+  --text-primary: #fdf9f4;
+  --text-secondary: #e7dac9;
+  --text-tertiary: #b09c95;
+  
+  --accent-primary: #ff4a3b;    /* Bright Neon Ketchup */
+  --accent-hover: #ff7063;
+  --accent-light: #30100a;
+  --accent-yellow: #ffc72c;
+  --success: #10b981;
+  
+  --shadow-flat: 4px 4px 0px #fdf9f4;
+  --shadow-flat-sm: 2px 2px 0px #fdf9f4;
+  --shadow-flat-lg: 6px 6px 0px #fdf9f4;
+
+  /* Nutrient Card Gradient Starts - Dark Theme */
+  --cal-gradient-start: #321313;
+  --prot-gradient-start: #112618;
+  --carb-gradient-start: #2e210c;
+  --fat-gradient-start: #241614;
+  --fib-gradient-start: #1f112e;
+}
+
 /* Base Styles */
 * {
   box-sizing: border-box;

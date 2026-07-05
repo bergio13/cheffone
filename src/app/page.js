@@ -137,6 +137,17 @@ function AuthModal({ onClose }) {
 export default function Home() {
   const { user } = useAuth();
   const [url, setUrl] = useState('');
+
+  // Support forcing theme via URL query parameter (e.g. ?theme=dark)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const themeParam = params.get('theme');
+    if (themeParam === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (themeParam === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }, []);
   const [rawText, setRawText] = useState('');
   const [showFallback, setShowFallback] = useState(false);
   const [recipes, setRecipes] = useState([]);
