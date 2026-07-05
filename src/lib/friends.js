@@ -63,18 +63,30 @@ export async function searchUserByUsername(input) {
 export async function sendFriendRequest(fromUser, toUid) {
   if (fromUser.uid === toUid) throw new Error("You can't add yourself.");
 
-  // Check already friends
-  const friendSnap = await getDoc(doc(db, 'users', fromUser.uid, 'friends', toUid));
-  if (friendSnap.exists()) throw new Error('Already friends!');
+  // Check already friends by checking accepted requests in friendRequests
+  const q1 = query(
+    collection(db, 'friendRequests'),
+    where('fromUid', '==', fromUser.uid),
+    where('toUid', '==', toUid),
+    where('status', '==', 'accepted')
+  );
+  const q2 = query(
+    collection(db, 'friendRequests'),
+    where('fromUid', '==', toUid),
+    where('toUid', '==', fromUser.uid),
+    where('status', '==', 'accepted')
+  );
+  const [friendsSnap1, friendsSnap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+  if (!friendsSnap1.empty || !friendsSnap2.empty) throw new Error('Already friends!');
 
   // Check already pending
-  const q = query(
+  const qPending = query(
     collection(db, 'friendRequests'),
     where('fromUid', '==', fromUser.uid),
     where('toUid', '==', toUid),
     where('status', '==', 'pending')
   );
-  const existing = await getDocs(q);
+  const existing = await getDocs(qPending);
   if (!existing.empty) throw new Error('Friend request already sent.');
 
   await addDoc(collection(db, 'friendRequests'), {
@@ -100,21 +112,6 @@ export async function getPendingRequests(uid) {
 
 export async function acceptFriendRequest(requestId, fromUid, toUid) {
   await updateDoc(doc(db, 'friendRequests', requestId), { status: 'accepted' });
-  const [fromSnap, toSnap] = await Promise.all([
-    getDoc(doc(db, 'users', fromUid)),
-    getDoc(doc(db, 'users', toUid)),
-  ]);
-  const now = serverTimestamp();
-  if (fromSnap.exists())
-    await setDoc(doc(db, 'users', toUid, 'friends', fromUid), {
-      ...fromSnap.data(),
-      addedAt: now,
-    });
-  if (toSnap.exists())
-    await setDoc(doc(db, 'users', fromUid, 'friends', toUid), {
-      ...toSnap.data(),
-      addedAt: now,
-    });
 }
 
 export async function declineFriendRequest(requestId) {
@@ -123,8 +120,32 @@ export async function declineFriendRequest(requestId) {
 
 // ── Friends list ───────────────────────────────────────────────────────────────
 export async function getFriends(uid) {
-  const snap = await getDocs(collection(db, 'users', uid, 'friends'));
-  return snap.docs.map((d) => d.data());
+  const q1 = query(
+    collection(db, 'friendRequests'),
+    where('fromUid', '==', uid),
+    where('status', '==', 'accepted')
+  );
+  const q2 = query(
+    collection(db, 'friendRequests'),
+    where('toUid', '==', uid),
+    where('status', '==', 'accepted')
+  );
+  const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+  const friendUids = new Set();
+  snap1.forEach((d) => friendUids.add(d.data().toUid));
+  snap2.forEach((d) => friendUids.add(d.data().fromUid));
+
+  if (friendUids.size === 0) return [];
+
+  const profiles = await Promise.all(
+    Array.from(friendUids).map(async (fUid) => {
+      const uSnap = await getDoc(doc(db, 'users', fUid));
+      return uSnap.exists() ? uSnap.data() : null;
+    })
+  );
+
+  return profiles.filter((p) => p !== null);
 }
 
 // ── Inbox (shared recipes) ─────────────────────────────────────────────────────
