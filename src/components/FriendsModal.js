@@ -274,7 +274,6 @@ export default function FriendsModal({ currentUser, onClose, recipeToShare, onSh
                     setSearchStatus('');
                     setSearchMsg('');
                   }}
-                  autoFocus
                 />
                 <button
                   type="submit"

@@ -121,8 +121,8 @@
   .tab:hover { background: rgba(0,0,0,0.05); }
 }
 .activeTab {
-  background: var(--text-primary, #1a0a00);
-  color: var(--bg-primary, #fff8f0);
+  background: var(--accent-primary);
+  color: #ffffff;
   border-color: var(--text-primary, #1a0a00);
 }
 

@@ -49,7 +49,7 @@
     --bg-secondary: #221411;      /* Flame-smoke brown */
     --bg-tertiary: #38211c;
     --card-bg: #1f120f;
-    --card-border: #fdf9f4;
+    --card-border: #b09c95;       /* Soft toast brown instead of stark white */
     --text-primary: #fdf9f4;
     --text-secondary: #e7dac9;
     --text-tertiary: #b09c95;
@@ -60,9 +60,9 @@
     --accent-yellow: #ffc72c;
     --success: #10b981;
     
-    --shadow-flat: 4px 4px 0px #fdf9f4;
-    --shadow-flat-sm: 2px 2px 0px #fdf9f4;
-    --shadow-flat-lg: 6px 6px 0px #fdf9f4;
+    --shadow-flat: 4px 4px 0px #120907;     /* Solid dark shadow instead of glowing white */
+    --shadow-flat-sm: 2px 2px 0px #120907;
+    --shadow-flat-lg: 6px 6px 0px #120907;
 
     /* Nutrient Card Gradient Starts - Dark Theme */
     --cal-gradient-start: #321313;
@@ -78,7 +78,7 @@
   --bg-secondary: #221411;      /* Flame-smoke brown */
   --bg-tertiary: #38211c;
   --card-bg: #1f120f;
-  --card-border: #fdf9f4;
+  --card-border: #b09c95;       /* Soft toast brown instead of stark white */
   --text-primary: #fdf9f4;
   --text-secondary: #e7dac9;
   --text-tertiary: #b09c95;
@@ -89,9 +89,9 @@
   --accent-yellow: #ffc72c;
   --success: #10b981;
   
-  --shadow-flat: 4px 4px 0px #fdf9f4;
-  --shadow-flat-sm: 2px 2px 0px #fdf9f4;
-  --shadow-flat-lg: 6px 6px 0px #fdf9f4;
+  --shadow-flat: 4px 4px 0px #120907;     /* Solid dark shadow instead of glowing white */
+  --shadow-flat-sm: 2px 2px 0px #120907;
+  --shadow-flat-lg: 6px 6px 0px #120907;
 
   /* Nutrient Card Gradient Starts - Dark Theme */
   --cal-gradient-start: #321313;

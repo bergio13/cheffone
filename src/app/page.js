@@ -622,7 +622,6 @@ export default function Home() {
                     setUrl(val);
                     if (val.includes('instagram.com')) setShowFallback(true);
                   }}
-                  autoFocus
                 />
               </div>
               <button type="submit" className={styles.primaryButton} disabled={loading}>

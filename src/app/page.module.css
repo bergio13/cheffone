@@ -2569,9 +2569,7 @@
   .printButton {
     justify-content: center !important;
   }
-}
 
-@media (max-width: 480px) {
   .userName {
     display: none !important;
   }
