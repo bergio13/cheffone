@@ -173,7 +173,7 @@
 
 .urlInput:focus {
   outline: none;
-  background: #ffffff;
+  background: var(--card-bg);
   box-shadow: var(--shadow-flat-sm);
 }
 
@@ -299,7 +299,7 @@
 
 .textarea:focus {
   outline: none;
-  background: #ffffff;
+  background: var(--card-bg);
   box-shadow: var(--shadow-flat-sm);
 }
 
@@ -511,7 +511,7 @@
 .recipeCardItem:hover {
   transform: translate(-2px, -2px);
   box-shadow: var(--shadow-flat-sm);
-  background: #ffffff;
+  background: var(--card-bg);
   border-left-color: var(--accent-yellow);
 }
 
@@ -551,7 +551,7 @@
 }
 
 .deleteButton {
-  background: #ffffff;
+  background: var(--card-bg);
   border: 2.5px solid var(--text-primary);
   color: var(--text-primary);
   cursor: pointer;
@@ -722,7 +722,7 @@
 }
 
 .adjustBtn {
-  background: #ffffff;
+  background: var(--card-bg);
   border: 2.5px solid var(--text-primary);
   width: 32px;
   height: 32px;
@@ -743,7 +743,7 @@
 }
 
 .printButton {
-  background: #ffffff;
+  background: var(--card-bg);
   border: 3px solid var(--text-primary);
   color: var(--text-primary);
   padding: 0.65rem 1.25rem;
@@ -970,7 +970,7 @@
   overflow-y: auto;
   border-radius: var(--border-radius-sm);
   border: 3px solid var(--text-primary);
-  background: #ffffff;
+  background: var(--card-bg);
   display: flex;
   justify-content: center;
 }
@@ -1109,7 +1109,7 @@
 .customCheckbox {
   width: 22px;
   height: 22px;
-  background: #ffffff;
+  background: var(--card-bg);
   border: 2.5px solid var(--text-primary);
   border-radius: 6px;
   transition: all var(--transition-fast);
@@ -1279,11 +1279,11 @@
 }
 
 /* Per-macro subtle tints */
-.calCard { background: linear-gradient(160deg, #fff5f5 0%, var(--card-bg) 60%); }
-.protCard { background: linear-gradient(160deg, #f0fff4 0%, var(--card-bg) 60%); }
-.carbCard { background: linear-gradient(160deg, #fffbeb 0%, var(--card-bg) 60%); }
-.fatCard  { background: linear-gradient(160deg, #f8f8f8 0%, var(--card-bg) 60%); }
-.fibCard  { background: linear-gradient(160deg, #f3e8ff 0%, var(--card-bg) 60%); }
+.calCard { background: linear-gradient(160deg, var(--cal-gradient-start) 0%, var(--card-bg) 60%); }
+.protCard { background: linear-gradient(160deg, var(--prot-gradient-start) 0%, var(--card-bg) 60%); }
+.carbCard { background: linear-gradient(160deg, var(--carb-gradient-start) 0%, var(--card-bg) 60%); }
+.fatCard  { background: linear-gradient(160deg, var(--fat-gradient-start) 0%, var(--card-bg) 60%); }
+.fibCard  { background: linear-gradient(160deg, var(--fib-gradient-start) 0%, var(--card-bg) 60%); }
 
 /* ─── Health Analysis Panel ─────────────────────────────────────────────── */
 
@@ -1587,7 +1587,7 @@
   position: absolute;
   top: 1.25rem;
   right: 1.25rem;
-  background: #ffffff;
+  background: var(--card-bg);
   border: 2.5px solid var(--text-primary);
   width: 32px;
   height: 32px;
@@ -2160,7 +2160,7 @@
 }
 
 .videoFacade:hover {
-  background: #ffffff;
+  background: var(--card-bg);
   transform: translate(-2px, -2px);
   box-shadow: var(--shadow-flat);
 }

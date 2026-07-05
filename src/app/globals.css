@@ -34,6 +34,13 @@
   --transition-fast: 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --transition-normal: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --transition-slow: 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Nutrient Card Gradient Starts */
+  --cal-gradient-start: #fff5f5;
+  --prot-gradient-start: #f0fff4;
+  --carb-gradient-start: #fffbeb;
+  --fat-gradient-start: #f8f8f8;
+  --fib-gradient-start: #f3e8ff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -56,6 +63,13 @@
     --shadow-flat: 4px 4px 0px #fdf9f4;
     --shadow-flat-sm: 2px 2px 0px #fdf9f4;
     --shadow-flat-lg: 6px 6px 0px #fdf9f4;
+
+    /* Nutrient Card Gradient Starts - Dark Theme */
+    --cal-gradient-start: #321313;
+    --prot-gradient-start: #112618;
+    --carb-gradient-start: #2e210c;
+    --fat-gradient-start: #241614;
+    --fib-gradient-start: #1f112e;
   }
 }
 
