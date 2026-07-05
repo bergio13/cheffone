@@ -30,7 +30,7 @@ export default function InboxModal({ currentUser, onClose, onSaveRecipe }) {
 
   useEffect(() => {
     if (!currentUser) return;
-    setLoading(true);
+    Promise.resolve().then(() => setLoading(true));
     getInbox(currentUser.uid).then((items) => {
       setInbox(items);
       setLoading(false);

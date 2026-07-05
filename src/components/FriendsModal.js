@@ -47,7 +47,7 @@ export default function FriendsModal({ currentUser, onClose, recipeToShare, onSh
 
   useEffect(() => {
     if (!currentUser) return;
-    setLoadingFriends(true);
+    Promise.resolve().then(() => setLoadingFriends(true));
     Promise.all([
       getFriends(currentUser.uid),
       getPendingRequests(currentUser.uid),

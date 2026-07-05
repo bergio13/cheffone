@@ -181,7 +181,7 @@ export default function Home() {
 
   // Reset video preview when active recipe changes
   useEffect(() => {
-    setPlayVideoId(null);
+    Promise.resolve().then(() => setPlayVideoId(null));
   }, [activeRecipeId]);
 
   const activeRecipe = recipes.find((r) => r.id === activeRecipeId);
@@ -252,21 +252,23 @@ export default function Home() {
     } else {
       // Not logged in — load from localStorage
       const saved = localStorage.getItem('cheffone_recipes');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setRecipes(parsed);
-          if (parsed.length > 0) {
-            setActiveRecipeId(parsed[0].id);
-            setAdjustedServings(parsed[0].servings || 2);
+      Promise.resolve().then(() => {
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setRecipes(parsed);
+            if (parsed.length > 0) {
+              setActiveRecipeId(parsed[0].id);
+              setAdjustedServings(parsed[0].servings || 2);
+            }
+          } catch (e) {
+            console.error('Failed to parse saved recipes:', e);
           }
-        } catch (e) {
-          console.error('Failed to parse saved recipes:', e);
         }
-      }
-      setFriends([]);
-      setPendingRequests([]);
-      setInboxItems([]);
+        setFriends([]);
+        setPendingRequests([]);
+        setInboxItems([]);
+      });
     }
   }, [user]);
 
@@ -474,7 +476,7 @@ export default function Home() {
   const { signOut } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const UserChip = () => {
+  const renderUserChip = () => {
     if (user === undefined) return null; // loading
     if (!user) {
       return (
@@ -578,7 +580,7 @@ export default function Home() {
               </button>
             </>
           )}
-          <UserChip />
+          {renderUserChip()}
           <button
             onClick={() => setIsImportOpen(true)}
             className={styles.primaryButton}
