@@ -358,7 +358,7 @@ export default function ChatModal({
                                       📖 View Recipe
                                     </button>
                                   )}
-                                  {onSaveRecipe && (
+                                  {onSaveRecipe && !isMe && (
                                     <button
                                       className={`${styles.saveRecipeBtn} ${
                                         savedRecipes.has(msg.id)
