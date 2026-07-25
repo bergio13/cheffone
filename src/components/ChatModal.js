@@ -47,6 +47,7 @@ export default function ChatModal({
   const [friends, setFriends] = useState([]);
   const [userChats, setUserChats] = useState([]);
   const [activeFriend, setActiveFriend] = useState(initialFriend);
+  const [mobileView, setMobileView] = useState(initialFriend ? 'chat' : 'list');
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
@@ -172,7 +173,11 @@ export default function ChatModal({
 
         <div className={styles.chatContainer}>
           {/* Sidebar Conversations / Friends */}
-          <div className={styles.sidebar}>
+          <div
+            className={`${styles.sidebar} ${
+              mobileView === 'chat' ? styles.sidebarHiddenMobile : ''
+            }`}
+          >
             <div className={styles.sidebarHeader}>
               <h3>💬 Kitchen Chat</h3>
             </div>
@@ -202,7 +207,10 @@ export default function ChatModal({
                       className={`${styles.friendItem} ${
                         isSelected ? styles.friendItemActive : ''
                       }`}
-                      onClick={() => setActiveFriend(friend)}
+                      onClick={() => {
+                        setActiveFriend(friend);
+                        setMobileView('chat');
+                      }}
                     >
                       <div className={styles.avatarWrapper}>
                         <Avatar user={friend} size={40} />
@@ -238,14 +246,25 @@ export default function ChatModal({
           </div>
 
           {/* Main Chat Area */}
-          <div className={styles.mainChat}>
+          <div
+            className={`${styles.mainChat} ${
+              mobileView === 'list' ? styles.mainChatHiddenMobile : ''
+            }`}
+          >
             {activeFriend ? (
               <>
                 {/* Chat Header */}
                 <div className={styles.chatHeader}>
+                  <button
+                    className={styles.backBtnMobile}
+                    onClick={() => setMobileView('list')}
+                    title="Back to friends"
+                  >
+                    ←
+                  </button>
                   <Avatar user={activeFriend} size={36} />
                   <div className={styles.headerTitleGroup}>
-                    <h4>{activeFriend.displayName || activeFriend.email}</h4>
+                    <h4>{activeFriend.displayName || activeFriend.email?.split('@')[0] || 'Chef'}</h4>
                     <span className={styles.onlineBadge}>● Online Chef</span>
                   </div>
                 </div>

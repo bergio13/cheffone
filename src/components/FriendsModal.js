@@ -197,8 +197,7 @@ export default function FriendsModal({ currentUser, onClose, recipeToShare, onSh
                   <div key={f.uid} className={styles.friendCard}>
                     <Avatar user={f} />
                     <div className={styles.friendInfo}>
-                      <span className={styles.friendName}>{f.displayName || 'Chef'}</span>
-                      <span className={styles.friendEmail}>{f.email}</span>
+                      <span className={styles.friendName}>{f.displayName || f.email?.split('@')[0] || 'Chef'}</span>
                     </div>
                     {isShareMode ? (
                       <button
@@ -245,8 +244,7 @@ export default function FriendsModal({ currentUser, onClose, recipeToShare, onSh
                       }
                     </div>
                     <div className={styles.friendInfo}>
-                      <span className={styles.friendName}>{req.fromName}</span>
-                      <span className={styles.friendEmail}>{req.fromEmail}</span>
+                      <span className={styles.friendName}>{req.fromName?.split('@')[0] || req.fromName}</span>
                     </div>
                     <div className={styles.requestActions}>
                       <button
@@ -300,8 +298,7 @@ export default function FriendsModal({ currentUser, onClose, recipeToShare, onSh
                 <div className={styles.searchResult}>
                   <Avatar user={searchResult} />
                   <div className={styles.friendInfo}>
-                    <span className={styles.friendName}>{searchResult.displayName || 'Chef'}</span>
-                    <span className={styles.friendEmail}>{searchResult.email}</span>
+                    <span className={styles.friendName}>{searchResult.displayName || searchResult.email?.split('@')[0] || 'Chef'}</span>
                   </div>
                   <button
                     className={styles.sendBtn}
