@@ -223,13 +223,17 @@ export async function sendChatMessage(fromUser, toUid, messageData) {
   if (!chatSnap.exists()) {
     await setDoc(chatRef, updateData);
   } else {
-    await updateDoc(chatRef, {
-      ...updateData,
-      participantInfo: {
-        ...(chatSnap.data().participantInfo || {}),
-        ...participantInfo,
+    await setDoc(
+      chatRef,
+      {
+        ...updateData,
+        participantInfo: {
+          ...(chatSnap.data().participantInfo || {}),
+          ...participantInfo,
+        },
       },
-    });
+      { merge: true }
+    );
   }
 }
 
@@ -285,9 +289,16 @@ export function subscribeToUserChats(uid, callback, onError) {
 export async function markChatAsRead(chatId, uid) {
   const chatRef = doc(db, 'chats', chatId);
   try {
-    await updateDoc(chatRef, {
-      unreadBy: arrayRemove(uid),
-    });
+    const snap = await getDoc(chatRef);
+    if (snap.exists()) {
+      await setDoc(
+        chatRef,
+        {
+          unreadBy: arrayRemove(uid),
+        },
+        { merge: true }
+      );
+    }
   } catch (e) {
     console.error('markChatAsRead error:', e);
   }
