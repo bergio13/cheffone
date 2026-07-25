@@ -451,7 +451,15 @@ export default function Home() {
     setCheckedIngredients((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
-  const triggerPrint = () => window.print();
+  // ── Social handlers ────────────────────────────────────────────────────────
+  const handleShareRecipe = (recipe) => {
+    if (!user) {
+      setIsAuthOpen(true);
+      return;
+    }
+    setShareTarget(recipe);
+    setIsFriendsOpen(true);
+  };
 
   const handleSaveSharedRecipe = async (recipe) => {
     const newRecipe = { ...recipe, id: Date.now().toString(), savedFromFriend: true };
