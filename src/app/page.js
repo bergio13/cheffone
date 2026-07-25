@@ -167,14 +167,15 @@ export default function Home() {
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'detail'
   const [playVideoId, setPlayVideoId] = useState(null);
 
+  const [previewRecipe, setPreviewRecipe] = useState(null);
   const hasMigratedRef = useRef(false);
 
   // Reset video preview when active recipe changes
   useEffect(() => {
     Promise.resolve().then(() => setPlayVideoId(null));
-  }, [activeRecipeId]);
+  }, [activeRecipeId, previewRecipe?.id]);
 
-  const activeRecipe = recipes.find((r) => r.id === activeRecipeId);
+  const activeRecipe = previewRecipe || recipes.find((r) => r.id === activeRecipeId);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -549,12 +550,14 @@ export default function Home() {
           initialFriend={activeChatFriend}
           onClose={() => { setIsChatOpen(false); setActiveChatFriend(null); }}
           onSelectRecipe={(recipe) => {
-            let target = recipes.find((r) => r.id === recipe.id);
-            if (!target) {
-              target = { ...recipe, id: recipe.id || Date.now().toString() };
-              setRecipes((prev) => [target, ...prev]);
+            const saved = recipes.find((r) => r.id === recipe.id);
+            if (saved) {
+              setPreviewRecipe(null);
+              setActiveRecipeId(saved.id);
+            } else {
+              setPreviewRecipe({ ...recipe, isPreviewOnly: true });
             }
-            setActiveRecipeId(target.id);
+            setAdjustedServings(recipe.servings || 2);
             setViewMode('detail');
           }}
           onSaveRecipe={handleSaveSharedRecipe}
@@ -720,6 +723,7 @@ export default function Home() {
                     key={r.id}
                     className={`${styles.recipeCardItem} ${activeRecipeId === r.id ? styles.recipeCardActive : ''}`}
                     onClick={() => {
+                      setPreviewRecipe(null);
                       setActiveRecipeId(r.id);
                       setViewMode('detail');
                       setAdjustedServings(r.servings || 2);
@@ -819,13 +823,26 @@ export default function Home() {
                       +
                     </button>
                   </div>
-                  <button
-                    className={styles.detailShareBtn}
-                    onClick={() => handleShareRecipe(activeRecipe)}
-                    title="Share recipe with friends"
-                  >
-                    📤 Share with Friends
-                  </button>
+                  {activeRecipe.isPreviewOnly && !recipes.some((r) => r.id === activeRecipe.id) ? (
+                    <button
+                      className={styles.savePreviewBtn}
+                      onClick={() => {
+                        handleSaveSharedRecipe(activeRecipe);
+                        setPreviewRecipe(null);
+                      }}
+                      title="Save this shared recipe to your collection"
+                    >
+                      🍳 Save to My Collection
+                    </button>
+                  ) : (
+                    <button
+                      className={styles.detailShareBtn}
+                      onClick={() => handleShareRecipe(activeRecipe)}
+                      title="Share recipe with friends"
+                    >
+                      📤 Share with Friends
+                    </button>
+                  )}
                 </div>
               </div>
 
