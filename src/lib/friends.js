@@ -241,7 +241,7 @@ export async function shareRecipeWithFriend(fromUser, toUid, recipe, messageText
   });
 }
 
-export function subscribeToChatMessages(chatId, callback) {
+export function subscribeToChatMessages(chatId, callback, onError) {
   const q = query(
     collection(db, 'chats', chatId, 'messages'),
     orderBy('createdAt', 'asc')
@@ -252,11 +252,14 @@ export function subscribeToChatMessages(chatId, callback) {
       const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       callback(msgs);
     },
-    (err) => console.error('subscribeToChatMessages error:', err)
+    (err) => {
+      console.warn('subscribeToChatMessages permission error:', err);
+      if (onError) onError(err);
+    }
   );
 }
 
-export function subscribeToUserChats(uid, callback) {
+export function subscribeToUserChats(uid, callback, onError) {
   const q = query(
     collection(db, 'chats'),
     where('participants', 'array-contains', uid)
@@ -272,7 +275,10 @@ export function subscribeToUserChats(uid, callback) {
       });
       callback(chats);
     },
-    (err) => console.error('subscribeToUserChats error:', err)
+    (err) => {
+      console.warn('subscribeToUserChats permission error:', err);
+      if (onError) onError(err);
+    }
   );
 }
 

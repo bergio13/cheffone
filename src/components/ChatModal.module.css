@@ -87,6 +87,23 @@
   color: #fff;
 }
 
+.permissionWarning {
+  background: rgba(255, 71, 87, 0.15);
+  border: 1px solid rgba(255, 71, 87, 0.4);
+  color: #ff4757;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.78rem;
+  margin: 0.5rem;
+  border-radius: 8px;
+  line-height: 1.3;
+}
+
+.permissionWarning code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+}
+
 .friendsList {
   flex: 1;
   overflow-y: auto;

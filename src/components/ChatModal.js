@@ -51,6 +51,7 @@ export default function ChatModal({
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const [savedRecipes, setSavedRecipes] = useState(new Set());
+  const [permissionError, setPermissionError] = useState(false);
   const messagesEndRef = useRef(null);
 
   // Load friends list
@@ -67,9 +68,18 @@ export default function ChatModal({
   // Subscribe to user's chat conversations overview
   useEffect(() => {
     if (!currentUser) return;
-    const unsubscribe = subscribeToUserChats(currentUser.uid, (chats) => {
-      setUserChats(chats);
-    });
+    const unsubscribe = subscribeToUserChats(
+      currentUser.uid,
+      (chats) => {
+        setUserChats(chats);
+        setPermissionError(false);
+      },
+      (err) => {
+        if (err?.code === 'permission-denied' || err?.message?.includes('permission')) {
+          setPermissionError(true);
+        }
+      }
+    );
     return () => unsubscribe();
   }, [currentUser]);
 
@@ -83,10 +93,19 @@ export default function ChatModal({
     const chatId = getChatId(currentUser.uid, activeFriend.uid);
     markChatAsRead(chatId, currentUser.uid);
 
-    const unsubscribe = subscribeToChatMessages(chatId, (msgs) => {
-      setMessages(msgs);
-      markChatAsRead(chatId, currentUser.uid);
-    });
+    const unsubscribe = subscribeToChatMessages(
+      chatId,
+      (msgs) => {
+        setMessages(msgs);
+        markChatAsRead(chatId, currentUser.uid);
+        setPermissionError(false);
+      },
+      (err) => {
+        if (err?.code === 'permission-denied' || err?.message?.includes('permission')) {
+          setPermissionError(true);
+        }
+      }
+    );
 
     return () => unsubscribe();
   }, [currentUser, activeFriend]);
@@ -157,6 +176,12 @@ export default function ChatModal({
             <div className={styles.sidebarHeader}>
               <h3>💬 Kitchen Chat</h3>
             </div>
+
+            {permissionError && (
+              <div className={styles.permissionWarning}>
+                ⚠️ Firestore Rules setup needed for chats collection. Check <code>firestore.rules</code>.
+              </div>
+            )}
 
             <div className={styles.friendsList}>
               {friends.length === 0 ? (
