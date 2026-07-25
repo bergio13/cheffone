@@ -15,9 +15,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import FriendsModal from '@/components/FriendsModal';
-import InboxModal from '@/components/InboxModal';
 import ChatModal from '@/components/ChatModal';
-import { getFriends, getPendingRequests, getInbox, shareRecipeWithFriend, getParseLimitStatus, incrementParseCount, subscribeToUserChats } from '@/lib/friends';
+import { getFriends, getPendingRequests, shareRecipeWithFriend, getParseLimitStatus, incrementParseCount, subscribeToUserChats } from '@/lib/friends';
 
 // Appetizing loader tips to rotate while parsing
 const LOADER_TIPS = [
@@ -157,13 +156,11 @@ export default function Home() {
 
   // Social state
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
-  const [isInboxOpen, setIsInboxOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeChatFriend, setActiveChatFriend] = useState(null);
   const [shareTarget, setShareTarget] = useState(null); // recipe being shared
   const [friends, setFriends] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
-  const [inboxItems, setInboxItems] = useState([]);
   const [userChats, setUserChats] = useState([]);
   const [toast, setToast] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -241,7 +238,6 @@ export default function Home() {
       // Load social data
       getFriends(user.uid).then(setFriends);
       getPendingRequests(user.uid).then(setPendingRequests);
-      getInbox(user.uid).then(setInboxItems);
     } else {
       // Not logged in — load from localStorage
       const saved = localStorage.getItem('cheffone_recipes');
@@ -260,7 +256,6 @@ export default function Home() {
         }
         setFriends([]);
         setPendingRequests([]);
-        setInboxItems([]);
         setUserChats([]);
       });
     }
@@ -458,25 +453,16 @@ export default function Home() {
 
   const triggerPrint = () => window.print();
 
-  // ── Social handlers ────────────────────────────────────────────────────────
-  const handleShareRecipe = (recipe) => {
-    if (!user) { setIsAuthOpen(true); return; }
-    setShareTarget(recipe);
-    setIsFriendsOpen(true);
-  };
-
-  const handleSaveInboxRecipe = async (recipe) => {
+  const handleSaveSharedRecipe = async (recipe) => {
     const newRecipe = { ...recipe, id: Date.now().toString(), savedFromFriend: true };
     const updatedRecipes = [newRecipe, ...recipes];
     await saveRecipesToStorage(updatedRecipes, newRecipe);
     setActiveRecipeId(newRecipe.id);
     setAdjustedServings(newRecipe.servings || 2);
-    setIsInboxOpen(false);
     showToast('Recipe saved to your collection! 🍳');
   };
 
   const totalUnreadChats = userChats.filter((c) => c.unreadBy?.includes(user?.uid)).length;
-  const unreadInbox = inboxItems.filter((i) => !i.seen).length;
   const pendingCount = pendingRequests.length;
 
   // ── User avatar chip ───────────────────────────────────────────────────────
@@ -563,16 +549,7 @@ export default function Home() {
             setActiveRecipeId(target.id);
             setViewMode('detail');
           }}
-          onSaveRecipe={handleSaveInboxRecipe}
-        />
-      )}
-
-      {/* Inbox Modal */}
-      {isInboxOpen && (
-        <InboxModal
-          currentUser={user}
-          onClose={() => setIsInboxOpen(false)}
-          onSaveRecipe={handleSaveInboxRecipe}
+          onSaveRecipe={handleSaveSharedRecipe}
         />
       )}
 
@@ -607,14 +584,6 @@ export default function Home() {
               >
                 👥
                 {pendingCount > 0 && <span className={styles.socialBadge}>{pendingCount}</span>}
-              </button>
-              <button
-                className={styles.socialBtn}
-                onClick={() => setIsInboxOpen(true)}
-                title="Recipe Inbox"
-              >
-                📬
-                {unreadInbox > 0 && <span className={styles.socialBadge}>{unreadInbox}</span>}
               </button>
             </>
           )}
@@ -1148,11 +1117,11 @@ export default function Home() {
         {user ? (
           <button
             className={styles.tabBarItem}
-            onClick={() => setIsInboxOpen(true)}
+            onClick={() => { setActiveChatFriend(null); setIsChatOpen(true); }}
           >
-            <span className={styles.tabBarIcon}>📬</span>
-            <span className={styles.tabBarLabel}>Inbox</span>
-            {unreadInbox > 0 && <span className={styles.tabBarBadge}>{unreadInbox}</span>}
+            <span className={styles.tabBarIcon}>💬</span>
+            <span className={styles.tabBarLabel}>Chat</span>
+            {totalUnreadChats > 0 && <span className={styles.tabBarBadge}>{totalUnreadChats}</span>}
           </button>
         ) : (
           <button

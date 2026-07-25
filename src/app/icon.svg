@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bunTop" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF8800" />
+      <stop offset="100%" stop-color="#E65100" />
+    </linearGradient>
+    <linearGradient id="patty" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5D4037" />
+      <stop offset="100%" stop-color="#3E2723" />
+    </linearGradient>
+    <linearGradient id="cheese" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD54F" />
+      <stop offset="100%" stop-color="#FFB300" />
+    </linearGradient>
+    <linearGradient id="lettuce" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#81C784" />
+      <stop offset="100%" stop-color="#4CAF50" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="48" fill="#1A1A24" stroke="#FF6B00" stroke-width="3" />
+
+  <!-- Chef Hat Puff on top of burger -->
+  <path d="M 38 24 C 34 16, 44 10, 50 14 C 56 10, 66 16, 62 24 Z" fill="#FFFFFF" />
+  <rect x="40" y="22" width="20" height="4" rx="2" fill="#E0E0E0" />
+
+  <!-- Top Bun -->
+  <path d="M 22 42 A 28 22 0 0 1 78 42 L 22 42 Z" fill="url(#bunTop)" />
+  <!-- Sesame seeds -->
+  <ellipse cx="36" cy="30" rx="1.8" ry="1" fill="#FFF8E1" transform="rotate(-15 36 30)" />
+  <ellipse cx="50" cy="26" rx="1.8" ry="1" fill="#FFF8E1" />
+  <ellipse cx="64" cy="30" rx="1.8" ry="1" fill="#FFF8E1" transform="rotate(15 64 30)" />
+
+  <!-- Lettuce -->
+  <path d="M 20 44 C 26 48, 34 43, 42 47 C 50 43, 58 48, 66 43 C 74 48, 80 44, 80 44 L 20 44 Z" fill="url(#lettuce)" />
+
+  <!-- Cheese Melt -->
+  <polygon points="22,48 78,48 74,57 60,53 50,62 38,52 26,58" fill="url(#cheese)" />
+
+  <!-- Patty -->
+  <rect x="20" y="56" width="60" height="12" rx="6" fill="url(#patty)" />
+
+  <!-- Bottom Bun -->
+  <rect x="22" y="70" width="56" height="10" rx="5" fill="url(#bunTop)" />
+</svg>

@@ -304,24 +304,6 @@ export async function markChatAsRead(chatId, uid) {
   }
 }
 
-// ── Inbox (Legacy shared recipes fallback) ──────────────────────────────────
-export async function getInbox(uid) {
-  const q = query(
-    collection(db, 'users', uid, 'inbox'),
-    orderBy('sharedAt', 'desc')
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data());
-}
-
-export async function markInboxSeen(uid, shareId) {
-  await updateDoc(doc(db, 'users', uid, 'inbox', shareId), { seen: true });
-}
-
-export async function deleteInboxItem(uid, shareId) {
-  await deleteDoc(doc(db, 'users', uid, 'inbox', shareId));
-}
-
 // ── Daily Parse Limits ────────────────────────────────────────────────────────
 export async function getParseLimitStatus(uid, limit = 5) {
   const ref = doc(db, 'users', uid);
