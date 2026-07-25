@@ -11,6 +11,9 @@ import {
   where,
   orderBy,
   serverTimestamp,
+  onSnapshot,
+  arrayUnion,
+  arrayRemove,
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -148,20 +151,143 @@ export async function getFriends(uid) {
   return profiles.filter((p) => p !== null);
 }
 
-// ── Inbox (shared recipes) ─────────────────────────────────────────────────────
-export async function shareRecipeWithFriend(fromUser, toUid, recipe) {
-  const shareId = `${fromUser.uid}_${recipe.id}_${Date.now()}`;
-  await setDoc(doc(db, 'users', toUid, 'inbox', shareId), {
-    id: shareId,
+// ── 1-on-1 Chat & Recipe Sharing ─────────────────────────────────────────────
+export function getChatId(uid1, uid2) {
+  return [uid1, uid2].sort().join('_');
+}
+
+export async function sendChatMessage(fromUser, toUid, messageData) {
+  const chatId = getChatId(fromUser.uid, toUid);
+  const chatRef = doc(db, 'chats', chatId);
+  const messagesRef = collection(db, 'chats', chatId, 'messages');
+
+  const senderName = fromUser.displayName || fromUser.email?.split('@')[0] || 'Chef';
+  const senderPhoto = fromUser.photoURL || '';
+
+  const messageDoc = {
+    senderUid: fromUser.uid,
+    senderName,
+    senderPhoto,
+    createdAt: serverTimestamp(),
+    ...messageData,
+  };
+
+  await addDoc(messagesRef, messageDoc);
+
+  const lastText =
+    messageData.type === 'recipe'
+      ? `🍳 Shared recipe: ${messageData.recipe?.title || 'a recipe'}`
+      : messageData.text || '';
+
+  const chatSnap = await getDoc(chatRef);
+
+  let toPhoto = '';
+  let toName = '';
+  if (chatSnap.exists()) {
+    const existing = chatSnap.data();
+    toName = existing.participantInfo?.[toUid]?.displayName || '';
+    toPhoto = existing.participantInfo?.[toUid]?.photoURL || '';
+  }
+  if (!toName) {
+    const recipientSnap = await getDoc(doc(db, 'users', toUid));
+    if (recipientSnap.exists()) {
+      const rData = recipientSnap.data();
+      toName = rData.displayName || rData.email?.split('@')[0] || '';
+      toPhoto = rData.photoURL || '';
+    }
+  }
+
+  const participantInfo = {
+    [fromUser.uid]: {
+      displayName: senderName,
+      photoURL: senderPhoto,
+      email: fromUser.email || '',
+    },
+    [toUid]: {
+      displayName: toName || 'Friend',
+      photoURL: toPhoto,
+      email: '',
+    },
+  };
+
+  const updateData = {
+    chatId,
+    participants: [fromUser.uid, toUid],
+    participantInfo,
+    lastMessage: lastText,
+    lastMessageAt: serverTimestamp(),
+    lastSenderUid: fromUser.uid,
+    unreadBy: arrayUnion(toUid),
+  };
+
+  if (!chatSnap.exists()) {
+    await setDoc(chatRef, updateData);
+  } else {
+    await updateDoc(chatRef, {
+      ...updateData,
+      participantInfo: {
+        ...(chatSnap.data().participantInfo || {}),
+        ...participantInfo,
+      },
+    });
+  }
+}
+
+export async function shareRecipeWithFriend(fromUser, toUid, recipe, messageText = '') {
+  await sendChatMessage(fromUser, toUid, {
+    type: 'recipe',
+    text: messageText,
     recipe,
-    fromUid: fromUser.uid,
-    fromName: fromUser.displayName || fromUser.email,
-    fromPhoto: fromUser.photoURL || '',
-    sharedAt: serverTimestamp(),
-    seen: false,
   });
 }
 
+export function subscribeToChatMessages(chatId, callback) {
+  const q = query(
+    collection(db, 'chats', chatId, 'messages'),
+    orderBy('createdAt', 'asc')
+  );
+  return onSnapshot(
+    q,
+    (snap) => {
+      const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      callback(msgs);
+    },
+    (err) => console.error('subscribeToChatMessages error:', err)
+  );
+}
+
+export function subscribeToUserChats(uid, callback) {
+  const q = query(
+    collection(db, 'chats'),
+    where('participants', 'array-contains', uid)
+  );
+  return onSnapshot(
+    q,
+    (snap) => {
+      const chats = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      chats.sort((a, b) => {
+        const tA = a.lastMessageAt?.toMillis ? a.lastMessageAt.toMillis() : 0;
+        const tB = b.lastMessageAt?.toMillis ? b.lastMessageAt.toMillis() : 0;
+        return tB - tA;
+      });
+      callback(chats);
+    },
+    (err) => console.error('subscribeToUserChats error:', err)
+  );
+}
+
+export async function markChatAsRead(chatId, uid) {
+  const chatRef = doc(db, 'chats', chatId);
+  try {
+    await updateDoc(chatRef, {
+      unreadBy: arrayRemove(uid),
+    });
+  } catch (e) {
+    console.error('markChatAsRead error:', e);
+  }
+}
+
+// ── Inbox (Legacy shared recipes fallback) ──────────────────────────────────
 export async function getInbox(uid) {
   const q = query(
     collection(db, 'users', uid, 'inbox'),

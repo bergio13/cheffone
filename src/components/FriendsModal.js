@@ -32,7 +32,7 @@ function Avatar({ user, size = 36 }) {
   );
 }
 
-export default function FriendsModal({ currentUser, onClose, recipeToShare, onShared }) {
+export default function FriendsModal({ currentUser, onClose, recipeToShare, onShared, onOpenChat }) {
   const isShareMode = !!recipeToShare;
   const [tab, setTab] = useState(isShareMode ? 'friends' : 'friends');
   const [friends, setFriends] = useState([]);
@@ -143,7 +143,7 @@ export default function FriendsModal({ currentUser, onClose, recipeToShare, onSh
             {isShareMode ? `Share "${recipeToShare.title}"` : 'Friends'}
           </h2>
           {isShareMode && (
-            <p className={styles.subtitle}>Pick a friend to send this recipe to.</p>
+            <p className={styles.subtitle}>Pick a friend to send this recipe to in chat.</p>
           )}
         </div>
 
@@ -200,14 +200,26 @@ export default function FriendsModal({ currentUser, onClose, recipeToShare, onSh
                       <span className={styles.friendName}>{f.displayName || 'Chef'}</span>
                       <span className={styles.friendEmail}>{f.email}</span>
                     </div>
-                    {isShareMode && (
+                    {isShareMode ? (
                       <button
                         className={`${styles.sendBtn} ${sharedTo.has(f.uid) ? styles.sentBtn : ''}`}
                         onClick={() => handleShare(f)}
                         disabled={busy || sharedTo.has(f.uid)}
                       >
-                        {sharedTo.has(f.uid) ? '✓ Sent!' : '📤 Send'}
+                        {sharedTo.has(f.uid) ? '✓ Sent to Chat!' : '📤 Send in Chat'}
                       </button>
+                    ) : (
+                      onOpenChat && (
+                        <button
+                          className={styles.sendBtn}
+                          onClick={() => {
+                            onClose();
+                            onOpenChat(f);
+                          }}
+                        >
+                          💬 Chat
+                        </button>
+                      )
                     )}
                   </div>
                 ))

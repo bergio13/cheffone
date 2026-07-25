@@ -16,7 +16,8 @@ import {
 import { db } from '@/lib/firebase';
 import FriendsModal from '@/components/FriendsModal';
 import InboxModal from '@/components/InboxModal';
-import { getFriends, getPendingRequests, getInbox, shareRecipeWithFriend, getParseLimitStatus, incrementParseCount } from '@/lib/friends';
+import ChatModal from '@/components/ChatModal';
+import { getFriends, getPendingRequests, getInbox, shareRecipeWithFriend, getParseLimitStatus, incrementParseCount, subscribeToUserChats } from '@/lib/friends';
 
 // Appetizing loader tips to rotate while parsing
 const LOADER_TIPS = [
@@ -137,17 +138,6 @@ function AuthModal({ onClose }) {
 export default function Home() {
   const { user } = useAuth();
   const [url, setUrl] = useState('');
-
-  // Support forcing theme via URL query parameter (e.g. ?theme=dark)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const themeParam = params.get('theme');
-    if (themeParam === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else if (themeParam === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  }, []);
   const [rawText, setRawText] = useState('');
   const [showFallback, setShowFallback] = useState(false);
   const [recipes, setRecipes] = useState([]);
@@ -168,10 +158,13 @@ export default function Home() {
   // Social state
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [activeChatFriend, setActiveChatFriend] = useState(null);
   const [shareTarget, setShareTarget] = useState(null); // recipe being shared
   const [friends, setFriends] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [inboxItems, setInboxItems] = useState([]);
+  const [userChats, setUserChats] = useState([]);
   const [toast, setToast] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'detail'
@@ -268,8 +261,21 @@ export default function Home() {
         setFriends([]);
         setPendingRequests([]);
         setInboxItems([]);
+        setUserChats([]);
       });
     }
+  }, [user]);
+
+  // ── User Chats Subscription ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!user) {
+      setUserChats([]);
+      return;
+    }
+    const unsubscribe = subscribeToUserChats(user.uid, (chats) => {
+      setUserChats(chats);
+    });
+    return () => unsubscribe();
   }, [user]);
 
   // ── TikTok Embed script dynamic re-evaluation ──────────────────────────────
@@ -469,6 +475,7 @@ export default function Home() {
     showToast('Recipe saved to your collection! 🍳');
   };
 
+  const totalUnreadChats = userChats.filter((c) => c.unreadBy?.includes(user?.uid)).length;
   const unreadInbox = inboxItems.filter((i) => !i.seen).length;
   const pendingCount = pendingRequests.length;
 
@@ -532,8 +539,31 @@ export default function Home() {
           onClose={() => { setIsFriendsOpen(false); setShareTarget(null); }}
           recipeToShare={shareTarget}
           onShared={(friendName) => {
-            showToast(`Recipe shared with ${friendName}! 📤`);
+            showToast(`Recipe sent in chat to ${friendName}! 📤`);
           }}
+          onOpenChat={(friend) => {
+            setActiveChatFriend(friend);
+            setIsChatOpen(true);
+          }}
+        />
+      )}
+
+      {/* Kitchen Chat Modal */}
+      {isChatOpen && (
+        <ChatModal
+          currentUser={user}
+          initialFriend={activeChatFriend}
+          onClose={() => { setIsChatOpen(false); setActiveChatFriend(null); }}
+          onSelectRecipe={(recipe) => {
+            let target = recipes.find((r) => r.id === recipe.id);
+            if (!target) {
+              target = { ...recipe, id: recipe.id || Date.now().toString() };
+              setRecipes((prev) => [target, ...prev]);
+            }
+            setActiveRecipeId(target.id);
+            setViewMode('detail');
+          }}
+          onSaveRecipe={handleSaveInboxRecipe}
         />
       )}
 
@@ -562,6 +592,14 @@ export default function Home() {
         <div className={styles.headerActions}>
           {user && (
             <>
+              <button
+                className={styles.socialBtn}
+                onClick={() => { setActiveChatFriend(null); setIsChatOpen(true); }}
+                title="Kitchen Chat"
+              >
+                💬
+                {totalUnreadChats > 0 && <span className={styles.socialBadge}>{totalUnreadChats}</span>}
+              </button>
               <button
                 className={styles.socialBtn}
                 onClick={() => { setShareTarget(null); setIsFriendsOpen(true); }}
