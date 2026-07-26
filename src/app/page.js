@@ -509,7 +509,15 @@ export default function Home() {
         </button>
         {showUserMenu && (
           <div className={styles.userMenu}>
-            <div className={styles.userMenuEmail}>{user.email}</div>
+            <div className={styles.userMenuHeader}>
+              <div className={styles.userMenuName}>
+                {user.displayName || 'Chef Member'}
+              </div>
+              <div className={styles.userMenuUsername}>
+                @{user.displayName ? user.displayName.toLowerCase().replace(/\s+/g, '') : user.email?.split('@')[0]}
+              </div>
+              <div className={styles.userMenuEmail}>{user.email}</div>
+            </div>
             <button
               className={styles.userMenuSignOut}
               onClick={async () => { await signOut(); setShowUserMenu(false); setRecipes([]); setActiveRecipeId(null); }}

@@ -1779,16 +1779,31 @@
   border: 2px solid var(--text-primary);
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-flat);
-  min-width: 180px;
+  min-width: 200px;
   z-index: 200;
   overflow: hidden;
   animation: fadeIn 0.15s ease;
 }
+.userMenuHeader {
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--text-primary);
+  background: var(--bg-secondary);
+}
+.userMenuName {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+.userMenuUsername {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+  margin-top: 0.15rem;
+}
 .userMenuEmail {
-  padding: 0.65rem 1rem;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  margin-top: 0.15rem;
   word-break: break-all;
 }
 .userMenuSignOut {
