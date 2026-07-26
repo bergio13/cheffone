@@ -152,6 +152,7 @@ export default function Home() {
   const [error, setError] = useState('');
 
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [scanTab, setScanTab] = useState('link'); // 'link' | 'text'
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -685,58 +686,74 @@ export default function Home() {
             </button>
 
             <div className={styles.parseHeader}>
-              <div className={styles.stickerBadge}>HOT &amp; FRESH</div>
-              <h2 className={styles.parseTitle}>Scan a Video Recipe</h2>
-              <p className={styles.parseSubtitle}>Paste a link below to parse the video details!</p>
+              <div className={styles.stickerBadge}>⚡ CHEFFONE AI SCANNER</div>
+              <h2 className={styles.parseTitle}>Scan &amp; Extract Recipe</h2>
+              <div className={styles.platformPills}>
+                <span className={styles.platformPill}>🎵 TikTok</span>
+                <span className={styles.platformPill}>📸 Instagram Reels</span>
+              </div>
             </div>
 
-            <form onSubmit={handleParseRecipe} className={styles.inputGroup}>
-              <div className={styles.urlInputContainer}>
-                <span className={styles.inputLinkIcon}>🍟</span>
-                <input
-                  type="url"
-                  className={styles.urlInput}
-                  placeholder="Paste TikTok or Instagram video link..."
-                  value={url}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setUrl(val);
-                    if (val.includes('instagram.com')) setShowFallback(true);
-                  }}
-                />
-              </div>
-              <button type="submit" className={styles.primaryButton} disabled={loading}>
-                {loading ? (
-                  <><span className={styles.spinnerMini}></span>Grilling...</>
-                ) : (
-                  'Order Recipe ⚡'
-                )}
-              </button>
-            </form>
-
-            {/* Collapsible Transcript / Description Fallback */}
-            <div className={styles.collapsibleArea}>
+            {/* Scan Mode Tabs */}
+            <div className={styles.scanModeTabs}>
               <button
                 type="button"
-                className={styles.collapsibleTrigger}
-                onClick={() => setShowFallback(!showFallback)}
+                className={`${styles.scanTab} ${scanTab === 'link' ? styles.scanTabActive : ''}`}
+                onClick={() => setScanTab('link')}
               >
-                <span className={styles.triggerIcon}>{showFallback ? '▼' : '▶'}</span>
-                <span>Manual order: Paste caption text description</span>
+                🔗 Video URL Link
               </button>
-
-              {showFallback && (
-                <div className={styles.collapsibleContent}>
-                  <textarea
-                    className={styles.textarea}
-                    placeholder="Paste the caption, ingredients list, or notes here to parse..."
-                    value={rawText}
-                    onChange={(e) => setRawText(e.target.value)}
-                  />
-
-                </div>
-              )}
+              <button
+                type="button"
+                className={`${styles.scanTab} ${scanTab === 'text' ? styles.scanTabActive : ''}`}
+                onClick={() => setScanTab('text')}
+              >
+                📝 Caption / Raw Text
+              </button>
             </div>
+
+            {scanTab === 'link' ? (
+              <form onSubmit={handleParseRecipe} className={styles.scanForm}>
+                <div className={styles.urlInputContainer}>
+                  <span className={styles.inputLinkIcon}>🍟</span>
+                  <input
+                    type="url"
+                    className={styles.urlInput}
+                    placeholder="Paste video URL link here..."
+                    value={url}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setUrl(val);
+                      if (val.includes('instagram.com')) setScanTab('text');
+                    }}
+                  />
+                </div>
+                <button type="submit" className={styles.primaryButton} disabled={loading || !url.trim()}>
+                  {loading ? (
+                    <><span className={styles.spinnerMini}></span>Grilling...</>
+                  ) : (
+                    'Order Recipe ⚡'
+                  )}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleParseRecipe} className={styles.scanForm}>
+                <textarea
+                  className={styles.textarea}
+                  placeholder="Paste the video caption, ingredients list, or recipe notes here to parse..."
+                  value={rawText}
+                  onChange={(e) => setRawText(e.target.value)}
+                  rows={4}
+                />
+                <button type="submit" className={styles.primaryButton} disabled={loading || !rawText.trim()}>
+                  {loading ? (
+                    <><span className={styles.spinnerMini}></span>Grilling...</>
+                  ) : (
+                    'Parse Text & Order ⚡'
+                  )}
+                </button>
+              </form>
+            )}
 
             {error && <div className={styles.errorAlert}>⚠️ {error}</div>}
           </div>
