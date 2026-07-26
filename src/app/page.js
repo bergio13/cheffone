@@ -777,15 +777,6 @@ export default function Home() {
                       </div>
                     </div>
                     <div className={styles.recipeCardActions}>
-                      {user && (
-                        <button
-                          className={styles.shareButton}
-                          onClick={(e) => { e.stopPropagation(); handleShareRecipe(r); }}
-                          title="Share with a friend"
-                        >
-                          📤 Share
-                        </button>
-                      )}
                       <button
                         className={styles.deleteButton}
                         onClick={(e) => handleDeleteRecipe(r.id, e)}
