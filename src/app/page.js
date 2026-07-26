@@ -554,6 +554,8 @@ export default function Home() {
           }}
           onOpenProfile={(friend) => {
             setIsFriendsOpen(false);
+            setPreviewRecipe(null);
+            setPreviewFromFriend(null);
             setActiveFriendProfile(friend);
           }}
         />
@@ -582,6 +584,8 @@ export default function Home() {
           onSaveRecipe={handleSaveSharedRecipe}
           onOpenProfile={(friend) => {
             setIsChatOpen(false);
+            setPreviewRecipe(null);
+            setPreviewFromFriend(null);
             setActiveFriendProfile(friend);
           }}
         />
@@ -592,7 +596,12 @@ export default function Home() {
         <FriendProfileModal
           friend={activeFriendProfile}
           currentUser={user}
-          onClose={() => setActiveFriendProfile(null)}
+          onClose={() => {
+            setActiveFriendProfile(null);
+            setPreviewRecipe(null);
+            setPreviewFromFriend(null);
+            setViewMode('list');
+          }}
           onOpenChat={(friend) => {
             setActiveFriendProfile(null);
             setIsFriendsOpen(false);

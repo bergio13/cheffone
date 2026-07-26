@@ -127,10 +127,7 @@ export default function FriendProfileModal({
                     {onSelectRecipe && (
                       <button
                         className={styles.viewBtn}
-                        onClick={() => {
-                          onSelectRecipe(r);
-                          onClose();
-                        }}
+                        onClick={() => onSelectRecipe(r)}
                       >
                         📖 View Recipe
                       </button>

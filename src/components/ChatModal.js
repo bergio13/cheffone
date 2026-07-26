@@ -359,10 +359,7 @@ export default function ChatModal({
                                   {onSelectRecipe && (
                                     <button
                                       className={styles.viewRecipeBtn}
-                                      onClick={() => {
-                                        onSelectRecipe(msg.recipe);
-                                        onClose();
-                                      }}
+                                      onClick={() => onSelectRecipe(msg.recipe)}
                                     >
                                       📖 View Recipe
                                     </button>
