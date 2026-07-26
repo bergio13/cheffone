@@ -170,6 +170,7 @@ export default function Home() {
   const [playVideoId, setPlayVideoId] = useState(null);
 
   const [previewRecipe, setPreviewRecipe] = useState(null);
+  const [previewFromFriend, setPreviewFromFriend] = useState(null);
   const hasMigratedRef = useRef(false);
 
   // Reset video preview when active recipe changes
@@ -547,10 +548,14 @@ export default function Home() {
             showToast(`Recipe sent in chat to ${friendName}! 📤`);
           }}
           onOpenChat={(friend) => {
+            setIsFriendsOpen(false);
             setActiveChatFriend(friend);
             setIsChatOpen(true);
           }}
-          onOpenProfile={(friend) => setActiveFriendProfile(friend)}
+          onOpenProfile={(friend) => {
+            setIsFriendsOpen(false);
+            setActiveFriendProfile(friend);
+          }}
         />
       )}
 
@@ -561,6 +566,9 @@ export default function Home() {
           initialFriend={activeChatFriend}
           onClose={() => { setIsChatOpen(false); setActiveChatFriend(null); }}
           onSelectRecipe={(recipe) => {
+            setIsChatOpen(false);
+            setIsFriendsOpen(false);
+            setActiveFriendProfile(null);
             const saved = recipes.find((r) => r.id === recipe.id);
             if (saved) {
               setPreviewRecipe(null);
@@ -572,7 +580,10 @@ export default function Home() {
             setViewMode('detail');
           }}
           onSaveRecipe={handleSaveSharedRecipe}
-          onOpenProfile={(friend) => setActiveFriendProfile(friend)}
+          onOpenProfile={(friend) => {
+            setIsChatOpen(false);
+            setActiveFriendProfile(friend);
+          }}
         />
       )}
 
@@ -584,10 +595,15 @@ export default function Home() {
           onClose={() => setActiveFriendProfile(null)}
           onOpenChat={(friend) => {
             setActiveFriendProfile(null);
+            setIsFriendsOpen(false);
             setActiveChatFriend(friend);
             setIsChatOpen(true);
           }}
           onSelectRecipe={(recipe) => {
+            setPreviewFromFriend(activeFriendProfile);
+            setActiveFriendProfile(null);
+            setIsFriendsOpen(false);
+            setIsChatOpen(false);
             const saved = recipes.find((r) => r.id === recipe.id);
             if (saved) {
               setPreviewRecipe(null);
@@ -762,6 +778,7 @@ export default function Home() {
                     className={`${styles.recipeCardItem} ${activeRecipeId === r.id ? styles.recipeCardActive : ''}`}
                     onClick={() => {
                       setPreviewRecipe(null);
+                      setPreviewFromFriend(null);
                       setActiveRecipeId(r.id);
                       setViewMode('detail');
                       setAdjustedServings(r.servings || 2);
@@ -816,11 +833,23 @@ export default function Home() {
               {/* Header details */}
               <div className={styles.recipeHeaderBlock}>
                 <button
-                  className={styles.mobileBackBtn}
-                  onClick={() => setViewMode('list')}
-                  title="Back to board"
+                  className={previewFromFriend ? styles.backToProfileBtnDesktop : styles.mobileBackBtn}
+                  onClick={() => {
+                    if (previewFromFriend) {
+                      const f = previewFromFriend;
+                      setPreviewRecipe(null);
+                      setPreviewFromFriend(null);
+                      setActiveFriendProfile(f);
+                    } else {
+                      setViewMode('list');
+                    }
+                  }}
+                  title={previewFromFriend ? "Back to friend profile" : "Back to board"}
                 >
-                  ← Back to Board
+                  {previewFromFriend
+                    ? `← Back to ${previewFromFriend.displayName?.split(' ')[0] || 'Chef'}'s Profile`
+                    : '← Back to Board'
+                  }
                 </button>
                 <div className={styles.titleArea}>
                   <div className={styles.titleBadgeContainer}>

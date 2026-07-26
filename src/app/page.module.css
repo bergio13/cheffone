@@ -623,6 +623,28 @@
   box-shadow: var(--shadow-flat);
 }
 
+.backToProfileBtnDesktop {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--accent-primary);
+  color: #ffffff;
+  border: 2px solid var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-sm);
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-flat-sm);
+  transition: all var(--transition-fast);
+  width: fit-content;
+}
+
+.backToProfileBtnDesktop:hover {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-flat);
+}
+
 .emptyState {
   color: var(--text-secondary);
   font-size: 0.95rem;
