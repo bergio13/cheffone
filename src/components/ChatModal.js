@@ -273,7 +273,7 @@ export default function ChatModal({
                     <Avatar user={activeFriend} size={36} />
                     <div className={styles.headerTitleGroup}>
                       <h4>{activeFriend.displayName || activeFriend.email?.split('@')[0] || 'Chef'}</h4>
-                      <span className={styles.onlineBadge}>● Online Chef • View Recipes 📖</span>
+                      <span className={styles.subBadge}>View Profile &amp; Recipes 📖</span>
                     </div>
                   </div>
                 </div>

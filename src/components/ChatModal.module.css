@@ -253,9 +253,10 @@
   color: #fff;
 }
 
-.onlineBadge {
+.subBadge {
   font-size: 0.75rem;
-  color: #2ed573;
+  color: #ff6b00;
+  font-weight: 600;
 }
 
 .messagesList {
