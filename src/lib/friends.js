@@ -18,6 +18,17 @@ import {
 import { db } from './firebase';
 
 // ── User profile ───────────────────────────────────────────────────────────────
+export async function getUserSavedRecipes(uid) {
+  try {
+    const q = query(collection(db, 'users', uid, 'recipes'), orderBy('parsedAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.data());
+  } catch (e) {
+    console.error('Error fetching user recipes:', e);
+    return [];
+  }
+}
+
 export async function createUserProfile(user) {
   const ref = doc(db, 'users', user.uid);
   const snap = await getDoc(ref);

@@ -232,6 +232,20 @@
   background: rgba(0, 0, 0, 0.2);
 }
 
+.headerProfileClickable {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.headerProfileClickable:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .headerTitleGroup h4 {
   margin: 0;
   font-size: 1rem;

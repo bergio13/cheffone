@@ -32,7 +32,7 @@ function Avatar({ user, size = 36 }) {
   );
 }
 
-export default function FriendsModal({ currentUser, onClose, recipeToShare, onShared, onOpenChat }) {
+export default function FriendsModal({ currentUser, onClose, recipeToShare, onShared, onOpenChat, onOpenProfile }) {
   const isShareMode = !!recipeToShare;
   const [tab, setTab] = useState(isShareMode ? 'friends' : 'friends');
   const [friends, setFriends] = useState([]);
@@ -195,9 +195,18 @@ export default function FriendsModal({ currentUser, onClose, recipeToShare, onSh
               ) : (
                 friends.map((f) => (
                   <div key={f.uid} className={styles.friendCard}>
-                    <Avatar user={f} />
-                    <div className={styles.friendInfo}>
-                      <span className={styles.friendName}>{f.displayName || f.email?.split('@')[0] || 'Chef'}</span>
+                    <div
+                      className={styles.friendProfileClickable}
+                      onClick={() => {
+                        if (onOpenProfile) onOpenProfile(f);
+                      }}
+                      title="Click to view chef's saved recipes"
+                    >
+                      <Avatar user={f} />
+                      <div className={styles.friendInfo}>
+                        <span className={styles.friendName}>{f.displayName || f.email?.split('@')[0] || 'Chef'}</span>
+                        <span className={styles.viewRecipesSub}>📖 View Recipes</span>
+                      </div>
                     </div>
                     {isShareMode ? (
                       <button

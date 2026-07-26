@@ -43,6 +43,7 @@ export default function ChatModal({
   initialFriend = null,
   onSelectRecipe,
   onSaveRecipe,
+  onOpenProfile,
 }) {
   const [friends, setFriends] = useState([]);
   const [userChats, setUserChats] = useState([]);
@@ -262,10 +263,18 @@ export default function ChatModal({
                   >
                     ←
                   </button>
-                  <Avatar user={activeFriend} size={36} />
-                  <div className={styles.headerTitleGroup}>
-                    <h4>{activeFriend.displayName || activeFriend.email?.split('@')[0] || 'Chef'}</h4>
-                    <span className={styles.onlineBadge}>● Online Chef</span>
+                  <div
+                    className={styles.headerProfileClickable}
+                    onClick={() => {
+                      if (onOpenProfile) onOpenProfile(activeFriend);
+                    }}
+                    title="Click to view chef profile & saved recipes"
+                  >
+                    <Avatar user={activeFriend} size={36} />
+                    <div className={styles.headerTitleGroup}>
+                      <h4>{activeFriend.displayName || activeFriend.email?.split('@')[0] || 'Chef'}</h4>
+                      <span className={styles.onlineBadge}>● Online Chef • View Recipes 📖</span>
+                    </div>
                   </div>
                 </div>
 

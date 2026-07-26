@@ -16,6 +16,7 @@ import {
 import { db } from '@/lib/firebase';
 import FriendsModal from '@/components/FriendsModal';
 import ChatModal from '@/components/ChatModal';
+import FriendProfileModal from '@/components/FriendProfileModal';
 import { getFriends, getPendingRequests, shareRecipeWithFriend, getParseLimitStatus, incrementParseCount, subscribeToUserChats } from '@/lib/friends';
 
 // Appetizing loader tips to rotate while parsing
@@ -158,6 +159,7 @@ export default function Home() {
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeChatFriend, setActiveChatFriend] = useState(null);
+  const [activeFriendProfile, setActiveFriendProfile] = useState(null);
   const [shareTarget, setShareTarget] = useState(null); // recipe being shared
   const [friends, setFriends] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -548,6 +550,7 @@ export default function Home() {
             setActiveChatFriend(friend);
             setIsChatOpen(true);
           }}
+          onOpenProfile={(friend) => setActiveFriendProfile(friend)}
         />
       )}
 
@@ -557,6 +560,33 @@ export default function Home() {
           currentUser={user}
           initialFriend={activeChatFriend}
           onClose={() => { setIsChatOpen(false); setActiveChatFriend(null); }}
+          onSelectRecipe={(recipe) => {
+            const saved = recipes.find((r) => r.id === recipe.id);
+            if (saved) {
+              setPreviewRecipe(null);
+              setActiveRecipeId(saved.id);
+            } else {
+              setPreviewRecipe({ ...recipe, isPreviewOnly: true });
+            }
+            setAdjustedServings(recipe.servings || 2);
+            setViewMode('detail');
+          }}
+          onSaveRecipe={handleSaveSharedRecipe}
+          onOpenProfile={(friend) => setActiveFriendProfile(friend)}
+        />
+      )}
+
+      {/* Friend Profile & Saved Recipes Modal */}
+      {activeFriendProfile && (
+        <FriendProfileModal
+          friend={activeFriendProfile}
+          currentUser={user}
+          onClose={() => setActiveFriendProfile(null)}
+          onOpenChat={(friend) => {
+            setActiveFriendProfile(null);
+            setActiveChatFriend(friend);
+            setIsChatOpen(true);
+          }}
           onSelectRecipe={(recipe) => {
             const saved = recipes.find((r) => r.id === recipe.id);
             if (saved) {
