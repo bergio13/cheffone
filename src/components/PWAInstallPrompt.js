@@ -115,48 +115,8 @@ export default function PWAInstallPrompt({ onRegisterPrompt }) {
     }
   }, [onRegisterPrompt, handleTriggerInstall, deferredPrompt, isStandalone, isIOS]);
 
-  const handleDismissBanner = () => {
-    setIsDismissed(true);
-    localStorage.setItem('cheffone_pwa_dismissed', Date.now().toString());
-  };
-
-  // Don't render banner if already running in standalone mode or installed
-  const showBanner = !isStandalone && !installed && !isDismissed;
-
   return (
     <>
-      {/* Floating Install Prompt Banner */}
-      {showBanner && (
-        <aside className={styles.installBanner} aria-label="Install Cheffone App">
-          <div className={styles.bannerHeader}>
-            <div className={styles.bannerAppInfo}>
-              <img src="/icon-192x192.png" alt="Cheffone Icon" className={styles.bannerIcon} />
-              <div className={styles.bannerTitleArea}>
-                <div className={styles.bannerTitle}>Cheffone App</div>
-                <span className={styles.bannerSubtitle}>AI Recipe Parser &amp; Social Kitchen</span>
-              </div>
-            </div>
-            <button
-              className={styles.closeBtn}
-              onClick={handleDismissBanner}
-              title="Dismiss for now"
-              aria-label="Dismiss banner"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className={styles.bannerActions}>
-            <button className={styles.installBtn} onClick={handleTriggerInstall}>
-              📲 Install App
-            </button>
-            <button className={styles.dismissBtn} onClick={handleDismissBanner}>
-              Maybe Later
-            </button>
-          </div>
-        </aside>
-      )}
-
       {/* Detailed Install Guidance Modal */}
       {showModal && (
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>

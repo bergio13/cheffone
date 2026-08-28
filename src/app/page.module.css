@@ -1884,6 +1884,26 @@
   margin-top: 0.15rem;
   word-break: break-all;
 }
+.userMenuItem {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--card-border);
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+}
+.userMenuItem:hover {
+  background: var(--bg-secondary);
+  color: var(--accent-primary);
+}
 .userMenuSignOut {
   width: 100%;
   padding: 0.7rem 1rem;

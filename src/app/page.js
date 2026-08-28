@@ -537,6 +537,15 @@ export default function Home() {
               <div className={styles.userMenuEmail}>{user.email}</div>
             </div>
             <button
+              className={styles.userMenuItem}
+              onClick={() => {
+                setShowUserMenu(false);
+                triggerInstallModal();
+              }}
+            >
+              📲 Install App
+            </button>
+            <button
               className={styles.userMenuSignOut}
               onClick={async () => { await signOut(); setShowUserMenu(false); setRecipes([]); setActiveRecipeId(null); }}
             >
@@ -677,13 +686,6 @@ export default function Home() {
             </>
           )}
           {renderUserChip()}
-          <button
-            className={styles.downloadAppBtn}
-            onClick={() => triggerInstallModal()}
-            title="Download & Install Cheffone App"
-          >
-            📲 Install App
-          </button>
           <button
             onClick={() => setIsImportOpen(true)}
             className={styles.primaryButton}
