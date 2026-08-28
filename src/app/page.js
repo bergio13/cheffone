@@ -17,6 +17,7 @@ import { db } from '@/lib/firebase';
 import FriendsModal from '@/components/FriendsModal';
 import ChatModal from '@/components/ChatModal';
 import FriendProfileModal from '@/components/FriendProfileModal';
+import PWAInstallPrompt, { triggerInstallModal } from '@/components/PWAInstallPrompt';
 import { getFriends, getPendingRequests, shareRecipeWithFriend, getParseLimitStatus, incrementParseCount, subscribeToUserChats } from '@/lib/friends';
 
 // Appetizing loader tips to rotate while parsing
@@ -265,6 +266,19 @@ export default function Home() {
       });
     }
   }, [user]);
+
+  // ── PWA Shortcuts Handling ────────────────────────────────────────────────
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const action = params.get('action');
+      if (action === 'scan') {
+        setIsImportOpen(true);
+      } else if (action === 'chat') {
+        setIsChatOpen(true);
+      }
+    }
+  }, []);
 
   // ── User Chats Subscription ────────────────────────────────────────────────
   useEffect(() => {
@@ -663,6 +677,13 @@ export default function Home() {
             </>
           )}
           {renderUserChip()}
+          <button
+            className={styles.downloadAppBtn}
+            onClick={() => triggerInstallModal()}
+            title="Download & Install Cheffone App"
+          >
+            📲 Install App
+          </button>
           <button
             onClick={() => setIsImportOpen(true)}
             className={styles.primaryButton}
@@ -1242,6 +1263,9 @@ export default function Home() {
           </button>
         )}
       </nav>
+
+      {/* PWA Service Worker & Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 }
