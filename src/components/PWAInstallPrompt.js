@@ -146,10 +146,6 @@ export default function PWAInstallPrompt({ onRegisterPrompt }) {
             </button>
           </div>
 
-          <p className={styles.bannerDescription}>
-            Install Cheffone on your device for lightning-fast offline cooking, instant recipe scanning, and full-screen kitchen mode.
-          </p>
-
           <div className={styles.bannerActions}>
             <button className={styles.installBtn} onClick={handleTriggerInstall}>
               📲 Install App
@@ -175,43 +171,7 @@ export default function PWAInstallPrompt({ onRegisterPrompt }) {
 
             <div className={styles.modalHeader}>
               <img src="/icon-192x192.png" alt="Cheffone" className={styles.modalAppIcon} />
-              <div className={styles.modalBadge}>OFFICIAL PWA</div>
               <h2 className={styles.modalTitle}>Download Cheffone</h2>
-              <p className={styles.modalSubtitle}>
-                Get the complete standalone kitchen app experience on your phone, tablet, or computer.
-              </p>
-            </div>
-
-            {/* Feature Highlights */}
-            <div className={styles.featureGrid}>
-              <div className={styles.featureCard}>
-                <span className={styles.featureIcon}>⚡</span>
-                <div className={styles.featureText}>
-                  <span className={styles.featureTitle}>Instant Launch</span>
-                  <span className={styles.featureDesc}>Opens instantly from home screen</span>
-                </div>
-              </div>
-              <div className={styles.featureCard}>
-                <span className={styles.featureIcon}>🍳</span>
-                <div className={styles.featureText}>
-                  <span className={styles.featureTitle}>Cook Mode</span>
-                  <span className={styles.featureDesc}>Distraction-free full-screen recipe view</span>
-                </div>
-              </div>
-              <div className={styles.featureCard}>
-                <span className={styles.featureIcon}>📶</span>
-                <div className={styles.featureText}>
-                  <span className={styles.featureTitle}>Offline Ready</span>
-                  <span className={styles.featureDesc}>Access your recipes even without internet</span>
-                </div>
-              </div>
-              <div className={styles.featureCard}>
-                <span className={styles.featureIcon}>🔒</span>
-                <div className={styles.featureText}>
-                  <span className={styles.featureTitle}>Light &amp; Fast</span>
-                  <span className={styles.featureDesc}>Zero storage bloat, instant auto-updates</span>
-                </div>
-              </div>
             </div>
 
             {/* Platform Instructions */}
