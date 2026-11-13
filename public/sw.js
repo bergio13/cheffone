@@ -1,5 +1,5 @@
 // Cheffone Service Worker - PWA & Offline Support
-const CACHE_NAME = 'cheffone-v2';
+const CACHE_NAME = 'cheffone-v3';
 const PRECACHE_ASSETS = [
   '/',
   '/icon.svg',

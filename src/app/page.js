@@ -216,6 +216,8 @@ export default function Home() {
 
   const isMountedRef = useRef(true);
   const isIllustratingRef = useRef(false);
+  const pendingBackfillRef = useRef(false);
+  const [backfillTick, setBackfillTick] = useState(0);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -224,9 +226,17 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    attemptedVisualKeysRef.current.clear();
+  }, [user?.uid]);
+
   // Retroactively generate title-based AI image illustrations for all saved recipes
   useEffect(() => {
-    if (isOffline || recipes.length === 0 || isIllustratingRef.current) return;
+    if (isOffline || recipes.length === 0) return;
+    if (isIllustratingRef.current) {
+      pendingBackfillRef.current = true;
+      return;
+    }
 
     const pending = recipes.filter((r) => {
       if (!needsDishVisualBackfill(r)) return false;
@@ -320,9 +330,13 @@ export default function Home() {
         console.error('Retroactive dish illustration error:', err);
       } finally {
         isIllustratingRef.current = false;
+        if (pendingBackfillRef.current && isMountedRef.current) {
+          pendingBackfillRef.current = false;
+          setBackfillTick((n) => n + 1);
+        }
       }
     })();
-  }, [recipes, isOffline, updateRecipeVisuals]);
+  }, [recipes, isOffline, updateRecipeVisuals, backfillTick]);
 
   // TikTok embed script re-evaluation
   useEffect(() => {
@@ -487,7 +501,12 @@ export default function Home() {
   };
 
   const handleSaveSharedRecipe = async (recipe) => {
-    const newRecipe = { ...recipe, id: Date.now().toString(), savedFromFriend: true };
+    const newRecipe = {
+      ...recipe,
+      id: Date.now().toString(),
+      parsedAt: recipe.parsedAt || new Date().toISOString(),
+      savedFromFriend: true,
+    };
     delete newRecipe.isPreviewOnly;
     await saveRecipe(newRecipe);
     setActiveRecipeId(newRecipe.id);

@@ -17,6 +17,14 @@ const LOCAL_KEY = 'cheffone_recipes';
 
 const recipesCol = (uid) => collection(db, 'users', uid, 'recipes');
 
+function saveLocalRecipes(list) {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
+  } catch (e) {
+    console.warn('Unable to cache recipes in localStorage:', e);
+  }
+}
+
 /**
  * Recipe persistence: Firestore when signed in, localStorage otherwise.
  * Migrates local recipes to Firestore on first login.
@@ -51,7 +59,10 @@ export function useRecipes(user, onLoad) {
         const local = JSON.parse(saved);
         if (!local.length) return;
         const batch = writeBatch(db);
-        local.forEach((r) => batch.set(doc(db, 'users', uid, 'recipes', r.id), r));
+        local.forEach((r) => {
+          const docId = String(r.id);
+          batch.set(doc(db, 'users', uid, 'recipes', docId), { ...r, id: docId });
+        });
         await batch.commit();
         localStorage.removeItem(LOCAL_KEY);
       } catch (e) {
@@ -64,7 +75,7 @@ export function useRecipes(user, onLoad) {
       try {
         await migrate(uid);
         const snap = await getDocs(query(recipesCol(uid), orderBy('parsedAt', 'desc')));
-        const loaded = snap.docs.map((d) => d.data());
+        const loaded = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
         if (cancelled) return;
         commit(loaded);
         onLoadRef.current?.(loaded);
@@ -99,12 +110,14 @@ export function useRecipes(user, onLoad) {
   /** Prepend a new recipe (or replace one with the same id) and persist it. */
   const saveRecipe = useCallback(
     async (recipe) => {
-      const next = [recipe, ...recipesRef.current.filter((r) => r.id !== recipe.id)];
+      const docId = String(recipe.id);
+      const normalized = { ...recipe, id: docId };
+      const next = [normalized, ...recipesRef.current.filter((r) => String(r.id) !== docId)];
       commit(next);
       if (user) {
-        await setDoc(doc(db, 'users', user.uid, 'recipes', recipe.id), recipe);
+        await setDoc(doc(db, 'users', user.uid, 'recipes', docId), normalized);
       } else {
-        localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
+        saveLocalRecipes(next);
       }
     },
     [user, commit]
@@ -112,12 +125,13 @@ export function useRecipes(user, onLoad) {
 
   const removeRecipe = useCallback(
     async (id) => {
-      const next = recipesRef.current.filter((r) => r.id !== id);
+      const docId = String(id);
+      const next = recipesRef.current.filter((r) => String(r.id) !== docId);
       commit(next);
       if (user) {
-        await deleteDoc(doc(db, 'users', user.uid, 'recipes', id));
+        await deleteDoc(doc(db, 'users', user.uid, 'recipes', docId));
       } else {
-        localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
+        saveLocalRecipes(next);
       }
     },
     [user, commit]
@@ -127,18 +141,19 @@ export function useRecipes(user, onLoad) {
   const updateRecipeVisuals = useCallback(
     async (visualsById) => {
       if (!visualsById || Object.keys(visualsById).length === 0) return;
-      const next = recipesRef.current.map((r) =>
-        visualsById[r.id] ? { ...r, dishVisual: visualsById[r.id] } : r
-      );
+      const next = recipesRef.current.map((r) => {
+        const visual = visualsById[String(r.id)];
+        return visual ? { ...r, dishVisual: visual } : r;
+      });
       commit(next);
       if (user) {
         const batch = writeBatch(db);
         for (const [id, dishVisual] of Object.entries(visualsById)) {
-          batch.set(doc(db, 'users', user.uid, 'recipes', id), { dishVisual }, { merge: true });
+          batch.set(doc(db, 'users', user.uid, 'recipes', String(id)), { dishVisual }, { merge: true });
         }
         await batch.commit();
       } else {
-        localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
+        saveLocalRecipes(next);
       }
     },
     [user, commit]
