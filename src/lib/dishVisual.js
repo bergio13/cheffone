@@ -1,4 +1,4 @@
-export const DISH_VISUAL_VERSION = 5;
+export const DISH_VISUAL_VERSION = 4;
 
 export const DISH_BACKDROPS = [
   '#d9381e', // Terracotta red

@@ -303,7 +303,7 @@ Please respond with a JSON object that strictly adheres to the following JSON sc
   "difficulty": "Easy | Medium | Hard",
   "category": "Dinner | Breakfast | Dessert | Appetizer | Snack | Drink | Other",
   "description": "A compelling 1-2 sentence description of the dish, highlighting its appeal.",
-  "illustrationDescription": "A concise 25-35 word purely visual description of the finished dish for a flat 2D vector icon artist: simple cream ceramic plate/bowl or clear glass, unmistakable food shapes, vibrant flat ingredient colors, sauce drizzle, and herb garnish. No camera/shot terms, no dark slate, no backgrounds, no hex colors.",
+  "illustrationDescription": "A concise 30-40 word purely visual plating description for an illustrator: exact plate/bowl/glass, exact cooked food shape, hero ingredients, glaze/sauce, and garnish. Wholesome culinary words only; no camera, photography, background, or hex colors.",
   "ingredients": [
     {
       "name": "Name of ingredient, e.g., Olive Oil",
