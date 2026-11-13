@@ -2680,10 +2680,28 @@
   }
 
   /* Hide desktop header actions that are now in the bottom tab bar */
-  .headerActions .socialBtn,
+  .headerActions .socialBtn:not(.themeToggleBtn),
   .headerActions .syncButton,
   .headerActions .primaryButton {
     display: none !important;
+  }
+  .headerActions .themeToggleBtn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 2px solid var(--board-border);
+    color: var(--text-primary);
+    box-shadow: 2px 2px 0 var(--board-border);
+    transition: transform var(--transition-fast);
+  }
+  .headerActions .themeToggleBtn:active {
+    transform: translate(1px, 1px);
+    box-shadow: none;
   }
 
   /* Mobile Back Button */

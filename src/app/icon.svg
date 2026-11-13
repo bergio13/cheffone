@@ -1,46 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <linearGradient id="bunTop" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF8800" />
-      <stop offset="100%" stop-color="#E65100" />
-    </linearGradient>
-    <linearGradient id="patty" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#5D4037" />
-      <stop offset="100%" stop-color="#3E2723" />
-    </linearGradient>
-    <linearGradient id="cheese" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFD54F" />
-      <stop offset="100%" stop-color="#FFB300" />
-    </linearGradient>
-    <linearGradient id="lettuce" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#81C784" />
-      <stop offset="100%" stop-color="#4CAF50" />
-    </linearGradient>
-  </defs>
-
-  <!-- Background Circle -->
-  <circle cx="50" cy="50" r="48" fill="#1A1A24" stroke="#FF6B00" stroke-width="3" />
-
-  <!-- Chef Hat Puff on top of burger -->
-  <path d="M 38 24 C 34 16, 44 10, 50 14 C 56 10, 66 16, 62 24 Z" fill="#FFFFFF" />
-  <rect x="40" y="22" width="20" height="4" rx="2" fill="#E0E0E0" />
-
-  <!-- Top Bun -->
-  <path d="M 22 42 A 28 22 0 0 1 78 42 L 22 42 Z" fill="url(#bunTop)" />
-  <!-- Sesame seeds -->
-  <ellipse cx="36" cy="30" rx="1.8" ry="1" fill="#FFF8E1" transform="rotate(-15 36 30)" />
-  <ellipse cx="50" cy="26" rx="1.8" ry="1" fill="#FFF8E1" />
-  <ellipse cx="64" cy="30" rx="1.8" ry="1" fill="#FFF8E1" transform="rotate(15 64 30)" />
-
-  <!-- Lettuce -->
-  <path d="M 20 44 C 26 48, 34 43, 42 47 C 50 43, 58 48, 66 43 C 74 48, 80 44, 80 44 L 20 44 Z" fill="url(#lettuce)" />
-
-  <!-- Cheese Melt -->
-  <polygon points="22,48 78,48 74,57 60,53 50,62 38,52 26,58" fill="url(#cheese)" />
-
-  <!-- Patty -->
-  <rect x="20" y="56" width="60" height="12" rx="6" fill="url(#patty)" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="10" y="10" width="108" height="108" rx="28" fill="#1F1E1D"/>
+  <rect x="6" y="6" width="108" height="108" rx="28" fill="#D9381E" stroke="#1F1E1D" stroke-width="4.5"/>
+  <path d="M16 32 C16 18, 24 12, 38 12 L84 12 C96 12, 106 18, 108 30" stroke="#F6795A" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+  
+  <!-- Chef Hat Toque crowning the bistro burger -->
+  <path d="M40 43 C31 39, 31 24, 43 23 C47 15, 61 14, 67 20 C76 16, 88 23, 84 36 C82 41, 79 43, 76 43 Z" fill="#FFFAF2" stroke="#1F1E1D" stroke-width="3.8" stroke-linejoin="round"/>
+  <path d="M48 28 C49 33, 50 36, 50 39" stroke="#E6D5BF" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M62 25 C62 31, 62 35, 62 39" stroke="#E6D5BF" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M73 29 C72 33, 71 36, 70 39" stroke="#E6D5BF" stroke-width="2.5" stroke-linecap="round"/>
+  <rect x="41" y="38" width="38" height="9" rx="3.5" fill="#FBE4C8" stroke="#1F1E1D" stroke-width="3.5"/>
 
   <!-- Bottom Bun -->
-  <rect x="22" y="70" width="56" height="10" rx="5" fill="url(#bunTop)" />
+  <path d="M28 91 L92 91 C92 100, 85 104, 77 104 L43 104 C35 104, 28 100, 28 91 Z" fill="#EA961C" stroke="#1F1E1D" stroke-width="3.8" stroke-linejoin="round"/>
+
+  <!-- Seared Bistro Patty -->
+  <rect x="24" y="77" width="72" height="15" rx="7.5" fill="#6F331E" stroke="#1F1E1D" stroke-width="3.8"/>
+  <path d="M35 83 L50 83" stroke="#9B5035" stroke-width="2.6" stroke-linecap="round"/>
+
+  <!-- Melted Cheddar Cheese draping over patty -->
+  <path d="M27 71 L93 71 L90 79 L76 75 L62 87 L46 75 L31 82 Z" fill="#FCD34D" stroke="#1F1E1D" stroke-width="3.2" stroke-linejoin="round"/>
+
+  <!-- Crisp Green Lettuce Wave overlapping cheese & top bun -->
+  <path d="M24 65 C31 61, 38 71, 45 66 C52 61, 59 71, 66 66 C73 61, 80 71, 87 66 C92 63, 96 67, 96 70 C95 74, 89 75, 84 73 L33 73 C27 74, 22 70, 24 65 Z" fill="#3B9B63" stroke="#1F1E1D" stroke-width="3.3" stroke-linejoin="round"/>
+
+  <!-- Top Golden Brioche Bun -->
+  <path d="M27 65 C27 48, 43 44, 60 44 C77 44, 93 48, 93 65 Z" fill="#F3A824" stroke="#1F1E1D" stroke-width="3.8" stroke-linejoin="round"/>
+  <path d="M36 57 C43 50, 58 49, 73 51" stroke="#FCD37D" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="45" cy="56" rx="2.6" ry="1.5" transform="rotate(-18 45 56)" fill="#FFFAF2"/>
+  <ellipse cx="61" cy="53" rx="2.6" ry="1.5" fill="#FFFAF2"/>
+  <ellipse cx="75" cy="57" rx="2.6" ry="1.5" transform="rotate(18 75 57)" fill="#FFFAF2"/>
+
 </svg>

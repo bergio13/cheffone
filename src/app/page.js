@@ -671,7 +671,7 @@ export default function Home() {
           </div>
         </div>
         <div className={styles.headerActions}>
-          <ThemeToggle className={styles.socialBtn} />
+          <ThemeToggle className={`${styles.socialBtn} ${styles.themeToggleBtn}`} />
           {user && (
             <>
               <button className={styles.socialBtn} onClick={() => openChat()} aria-label="Kitchen Chat" title="Kitchen Chat">
