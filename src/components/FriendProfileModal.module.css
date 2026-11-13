@@ -301,13 +301,31 @@
     height: 100dvh;
     max-height: 100dvh;
     border-radius: 0;
+    border: none;
+  }
+  .closeBtn {
+    top: calc(0.75rem + env(safe-area-inset-top, 0px));
+    right: 0.75rem;
+    width: 44px;
+    height: 44px;
   }
   .profileHeader {
     flex-direction: column;
     text-align: center;
     align-items: center;
+    padding: calc(2rem + env(safe-area-inset-top, 0px)) 1.25rem 1.5rem;
   }
   .profileMeta {
     align-items: center;
+  }
+  .recipesSection {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+  .chatBtn,
+  .viewBtn,
+  .saveBtn {
+    min-height: 44px;
   }
 }

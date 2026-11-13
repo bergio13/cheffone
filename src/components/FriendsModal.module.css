@@ -375,7 +375,7 @@
   font-weight: 600;
 }
 .searchMsgOk { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-.searchMsgError { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.searchMsgError { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger-border); }
 
 /* Empty & loading states */
 .emptyState {
@@ -418,6 +418,7 @@
 @media (max-width: 600px) {
   .overlay {
     align-items: flex-end !important;
+    padding: 0 !important;
   }
   
   .modal {
@@ -431,12 +432,34 @@
     border-bottom: none !important;
     border-left: none !important;
     border-right: none !important;
-    padding: 2.25rem 1.25rem calc(2.25rem + env(safe-area-inset-bottom, 16px)) 1.25rem !important;
+    padding: 2.25rem 1.25rem calc(1.75rem + env(safe-area-inset-bottom, 16px)) 1.25rem !important;
     margin: 0 !important;
-    max-height: 80vh !important;
+    max-height: 88dvh !important;
     box-shadow: var(--shadow-flat-lg) !important;
     transform: translateY(0);
     animation: slideUp 0.32s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+
+  .content {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   @keyframes slideUp {
@@ -454,7 +477,8 @@
 
   .sendBtn {
     min-height: 44px !important;
-    padding: 0.75rem 1.25rem !important;
+    padding: 0.75rem 1rem !important;
+    flex-shrink: 0;
   }
 
   .requestCard {
@@ -475,7 +499,7 @@
   .searchInput {
     min-height: 44px !important;
     padding: 0.75rem 1rem !important;
-    font-size: 1rem !important;
+    font-size: 16px !important;
   }
 
   .searchBtn {

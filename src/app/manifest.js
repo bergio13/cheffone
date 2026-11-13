@@ -71,5 +71,14 @@ export default function manifest() {
         icons: [{ src: '/icon-192x192.png', sizes: '192x192' }],
       },
     ],
+    share_target: {
+      action: '/',
+      method: 'GET',
+      params: {
+        title: 'title',
+        text: 'text',
+        url: 'url',
+      },
+    },
   };
 }

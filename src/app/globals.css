@@ -1,8 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
 :root {
-  --font-serif: 'Lilita One', cursive, sans-serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-display-loaded), 'Lilita One', cursive, sans-serif;
+  --font-sans: var(--font-sans-loaded), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
   /* Modern High-Contrast Warm Culinary Color Palette */
   --bg-primary: #faf9f6;         /* Soft warm alabaster off-white */
@@ -20,6 +18,11 @@
   --accent-yellow: #f59e0b;      /* Honey Amber accent */
   --success: #16a34a;            /* Fresh Herb Green */
   --error: #dc2626;
+
+  /* Neo-brutalist Home Board tokens */
+  --board-border: #141210;
+  --board-shadow: 4px 4px 0 #141210;
+  --board-shadow-sm: 3px 3px 0 #141210;
 
   /* Modern Layered Elevation Drop Shadows */
   --shadow-flat: 0 4px 14px -2px rgba(28, 25, 23, 0.08), 0 2px 4px -1px rgba(28, 25, 23, 0.04);
@@ -43,6 +46,65 @@
   --fib-gradient-start: #f3e8ff;
 }
 
+:root {
+  --danger-bg: #fee2e2;
+  --danger-border: #fca5a5;
+  --danger-text: #991b1b;
+  color-scheme: light;
+}
+
+/* Dark theme (set via data-theme on <html> by the layout init script / toggle) */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg-primary: #141210;
+  --bg-secondary: #1d1a17;
+  --bg-tertiary: #2a2622;
+  --card-bg: #1f1c19;
+  --card-border: #36312c;
+  --text-primary: #f5f1ec;
+  --text-secondary: #c9c2b9;
+  --text-tertiary: #9b938a;
+
+  --accent-primary: #ef4a2e;
+  --accent-hover: #ff6446;
+  --accent-light: #3a1914;
+  --success: #4ade80;
+  --error: #f87171;
+
+  --board-border: #4a433b;
+  --board-shadow: 4px 4px 0 #080706;
+  --board-shadow-sm: 3px 3px 0 #080706;
+
+  --shadow-flat: 0 4px 14px -2px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.35);
+  --shadow-flat-sm: 0 2px 6px -1px rgba(0, 0, 0, 0.45);
+  --shadow-flat-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.6), 0 4px 10px -2px rgba(0, 0, 0, 0.4);
+
+  --cal-gradient-start: #2e1a17;
+  --prot-gradient-start: #14261a;
+  --carb-gradient-start: #2a2212;
+  --fat-gradient-start: #232120;
+  --fib-gradient-start: #25193a;
+
+  --danger-bg: #3b1513;
+  --danger-border: #7f1d1d;
+  --danger-text: #fca5a5;
+}
+
+/* Accessibility: visible keyboard focus + reduced motion */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Base Styles */
 * {
   box-sizing: border-box;
@@ -50,9 +112,14 @@
   padding: 0;
 }
 
+html {
+  overscroll-behavior-y: contain;
+}
+
 html, body {
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--bg-primary);
   background-image: radial-gradient(circle, rgba(217, 56, 30, 0.025) 1px, transparent 1px);
   background-size: 28px 28px;
@@ -60,13 +127,18 @@ html, body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  overflow-x: clip;
   transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+button, a, [role="button"], label {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 input, button, textarea {
@@ -106,3 +178,8 @@ input, button, textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-primary);
 }
+
+/* Theme toggle icon swap */
+.theme-icon-dark { display: none; }
+:root[data-theme='dark'] .theme-icon-dark { display: inline-block; }
+:root[data-theme='dark'] .theme-icon-light { display: none; }

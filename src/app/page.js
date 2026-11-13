@@ -1,265 +1,126 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  Zap,
+  MessageCircle,
+  Users,
+  Cloud,
+  Download,
+  LogOut,
+  BookMarked,
+  User,
+  Loader2,
+  WifiOff,
+} from 'lucide-react';
 import styles from './page.module.css';
 import { useAuth } from '@/lib/authContext';
-import {
-  collection,
-  doc,
-  getDocs,
-  setDoc,
-  deleteDoc,
-  writeBatch,
-  query,
-  orderBy,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useRecipes } from '@/lib/useRecipes';
+import { parseLaunchIntent } from '@/lib/shareIntent';
+import { needsDishVisualBackfill } from '@/lib/dishVisual';
+import { compressDishImageDataUrl } from '@/lib/compressDishImage';
+import AuthModal from '@/components/AuthModal';
+import ImportModal from '@/components/ImportModal';
+import Sidebar from '@/components/Sidebar';
+import RecipeDetail from '@/components/RecipeDetail';
+import ThemeToggle from '@/components/ThemeToggle';
 import FriendsModal from '@/components/FriendsModal';
 import ChatModal from '@/components/ChatModal';
 import FriendProfileModal from '@/components/FriendProfileModal';
 import PWAInstallPrompt, { triggerInstallModal } from '@/components/PWAInstallPrompt';
-import { getFriends, getPendingRequests, shareRecipeWithFriend, getParseLimitStatus, incrementParseCount, subscribeToUserChats } from '@/lib/friends';
+import {
+  getFriends,
+  getPendingRequests,
+  getParseLimitStatus,
+  incrementParseCount,
+  subscribeToUserChats,
+} from '@/lib/friends';
 
-// Appetizing loader tips to rotate while parsing
 const LOADER_TIPS = [
-  "Firing up the grill...",
-  "Slicing pickles and shredding lettuce...",
-  "Consulting the secret recipe book...",
-  "Calculating calorie counts for your meal...",
-  "Plating the digital burger card...",
-  "Squeezing the ketchup and mustard...",
+  'Firing up the grill...',
+  'Slicing pickles and shredding lettuce...',
+  'Consulting the secret recipe book...',
+  'Calculating calorie counts for your meal...',
+  'Plating the digital burger card...',
+  'Squeezing the ketchup and mustard...',
 ];
 
-// ─── Auth Modal ────────────────────────────────────────────────────────────────
-function AuthModal({ onClose }) {
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
-  const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+const DAILY_PARSE_LIMIT = 5;
+const ALLOWED_DOMAINS = ['instagram.com', 'instagr.am', 'tiktok.com', 'vm.tiktok.com'];
 
-  const handleGoogle = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      await signInWithGoogle();
-      onClose();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmail = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      if (mode === 'signup') {
-        await signUpWithEmail(email, password, name);
-      } else {
-        await signInWithEmail(email, password);
-      }
-      onClose();
-    } catch (e) {
-      setError(e.message.replace('Firebase: ', '').replace(/\(auth\/.*\)/, '').trim());
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.modalClose} onClick={onClose}>✕</button>
-
-        <div className={styles.parseHeader}>
-          <div className={styles.stickerBadge}>MEMBER CARD</div>
-          <h2 className={styles.parseTitle}>
-            {mode === 'signin' ? 'Welcome Back, Chef!' : 'Join the Kitchen'}
-          </h2>
-          <p className={styles.parseSubtitle}>
-            {mode === 'signin'
-              ? 'Sign in to sync your recipes across all devices.'
-              : 'Create an account to save your recipes forever.'}
-          </p>
-        </div>
-
-
-
-        <form onSubmit={handleEmail} className={styles.authForm}>
-          {mode === 'signup' && (
-            <input
-              type="text"
-              className={styles.authInput}
-              placeholder="Your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          )}
-          <input
-            type="email"
-            className={styles.authInput}
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            className={styles.authInput}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-          />
-          {error && <div className={styles.errorAlert}>⚠️ {error}</div>}
-          <button type="submit" className={styles.primaryButton} disabled={loading}>
-            {loading ? <><span className={styles.spinnerMini}></span> Loading...</> : mode === 'signin' ? '🔐 Sign In' : '🍳 Create Account'}
-          </button>
-        </form>
-
-        <p className={styles.authToggle}>
-          {mode === 'signin' ? "New here? " : "Already have an account? "}
-          <button onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(''); }}>
-            {mode === 'signin' ? 'Create an account' : 'Sign in'}
-          </button>
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function Home() {
-  const { user } = useAuth();
-  const [url, setUrl] = useState('');
-  const [rawText, setRawText] = useState('');
-  const [showFallback, setShowFallback] = useState(false);
-  const [recipes, setRecipes] = useState([]);
-  const [activeRecipeId, setActiveRecipeId] = useState(null);
+  const { user, signOut } = useAuth();
 
-  const [activeTab, setActiveTab] = useState('recipe');
+  // Recipe collection + selection
+  const [activeRecipeId, setActiveRecipeId] = useState(null);
   const [adjustedServings, setAdjustedServings] = useState(2);
   const [checkedIngredients, setCheckedIngredients] = useState({});
+  const [activeTab, setActiveTab] = useState('recipe');
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'detail'
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [playVideoId, setPlayVideoId] = useState(null);
+  const [previewRecipe, setPreviewRecipe] = useState(null);
+  const [previewFromFriend, setPreviewFromFriend] = useState(null);
 
+  const handleRecipesLoaded = useCallback((loaded) => {
+    if (loaded.length > 0) {
+      setActiveRecipeId(loaded[0].id);
+      setAdjustedServings(loaded[0].servings || 2);
+    }
+  }, []);
+  const { recipes, isSyncing, saveRecipe, updateRecipeVisuals, removeRecipe, clearRecipes } = useRecipes(user, handleRecipesLoaded);
+
+  // Import / parse
+  const [url, setUrl] = useState('');
+  const [rawText, setRawText] = useState('');
+  const [scanTab, setScanTab] = useState('link'); // 'link' | 'text'
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loaderTipIndex, setLoaderTipIndex] = useState(0);
   const [error, setError] = useState('');
 
-  const [isImportOpen, setIsImportOpen] = useState(false);
-  const [scanTab, setScanTab] = useState('link'); // 'link' | 'text'
+  // Auth / UI
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
+  const [pendingChatLaunch, setPendingChatLaunch] = useState(false);
+  const [toast, setToast] = useState('');
+  const toastTimer = useRef(null);
+  const userMenuRef = useRef(null);
+  const attemptedVisualKeysRef = useRef(new Set());
 
-  // Social state
+  // Social
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeChatFriend, setActiveChatFriend] = useState(null);
   const [activeFriendProfile, setActiveFriendProfile] = useState(null);
-  const [shareTarget, setShareTarget] = useState(null); // recipe being shared
+  const [shareTarget, setShareTarget] = useState(null);
   const [friends, setFriends] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [userChats, setUserChats] = useState([]);
-  const [toast, setToast] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'detail'
-  const [playVideoId, setPlayVideoId] = useState(null);
-
-  const [previewRecipe, setPreviewRecipe] = useState(null);
-  const [previewFromFriend, setPreviewFromFriend] = useState(null);
-  const hasMigratedRef = useRef(false);
-
-  // Reset video preview when active recipe changes
-  useEffect(() => {
-    Promise.resolve().then(() => setPlayVideoId(null));
-  }, [activeRecipeId, previewRecipe?.id]);
 
   const activeRecipe = previewRecipe || recipes.find((r) => r.id === activeRecipeId);
 
   const showToast = (msg) => {
+    clearTimeout(toastTimer.current);
     setToast(msg);
-    setTimeout(() => setToast(''), 3000);
+    toastTimer.current = setTimeout(() => setToast(''), 3000);
   };
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
 
-  // ── Firestore helpers ──────────────────────────────────────────────────────
-  const getUserRecipesRef = (uid) => collection(db, 'users', uid, 'recipes');
-
-  const loadFromFirestore = async (uid) => {
-    setIsSyncing(true);
-    try {
-      const q = query(getUserRecipesRef(uid), orderBy('parsedAt', 'desc'));
-      const snap = await getDocs(q);
-      const loaded = snap.docs.map((d) => d.data());
-      setRecipes(loaded);
-      if (loaded.length > 0) {
-        setActiveRecipeId(loaded[0].id);
-        setAdjustedServings(loaded[0].servings || 2);
-      }
-    } catch (e) {
-      console.error('Firestore load error:', e);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const saveRecipeToFirestore = async (uid, recipe) => {
-    await setDoc(doc(db, 'users', uid, 'recipes', recipe.id), recipe);
-  };
-
-  const deleteRecipeFromFirestore = async (uid, id) => {
-    await deleteDoc(doc(db, 'users', uid, 'recipes', id));
-  };
-
-  // ── Migrate localStorage → Firestore on first login ───────────────────────
-  const migrateLocalToFirestore = async (uid) => {
-    if (hasMigratedRef.current) return;
-    hasMigratedRef.current = true;
-    const saved = localStorage.getItem('cheffone_recipes');
-    if (!saved) return;
-    try {
-      const local = JSON.parse(saved);
-      if (!local.length) return;
-      const batch = writeBatch(db);
-      local.forEach((r) => {
-        batch.set(doc(db, 'users', uid, 'recipes', r.id), r);
-      });
-      await batch.commit();
-      localStorage.removeItem('cheffone_recipes');
-    } catch (e) {
-      console.error('Migration error:', e);
-    }
-  };
-
-  // ── Auth state effect ──────────────────────────────────────────────────────
+  // Reset video preview when the active recipe changes
   useEffect(() => {
-    if (user === undefined) return; // still loading
+    queueMicrotask(() => setPlayVideoId(null));
+  }, [activeRecipeId, previewRecipe?.id]);
+
+  // Social data follows auth state
+  useEffect(() => {
+    if (user === undefined) return;
     if (user) {
-      migrateLocalToFirestore(user.uid).then(() => loadFromFirestore(user.uid));
-      // Load social data
       getFriends(user.uid).then(setFriends);
       getPendingRequests(user.uid).then(setPendingRequests);
     } else {
-      // Not logged in — load from localStorage
-      const saved = localStorage.getItem('cheffone_recipes');
-      Promise.resolve().then(() => {
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            setRecipes(parsed);
-            if (parsed.length > 0) {
-              setActiveRecipeId(parsed[0].id);
-              setAdjustedServings(parsed[0].servings || 2);
-            }
-          } catch (e) {
-            console.error('Failed to parse saved recipes:', e);
-          }
-        }
+      queueMicrotask(() => {
         setFriends([]);
         setPendingRequests([]);
         setUserChats([]);
@@ -267,115 +128,284 @@ export default function Home() {
     }
   }, [user]);
 
-  // ── PWA Shortcuts Handling ────────────────────────────────────────────────
+  // Network connectivity tracking for mobile offline cooking mode
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const action = params.get('action');
-      if (action === 'scan') {
-        setIsImportOpen(true);
-      } else if (action === 'chat') {
-        setIsChatOpen(true);
-      }
-    }
+    const syncStatus = () => setIsOffline(!navigator.onLine);
+    queueMicrotask(syncStatus);
+    window.addEventListener('online', syncStatus);
+    window.addEventListener('offline', syncStatus);
+    return () => {
+      window.removeEventListener('online', syncStatus);
+      window.removeEventListener('offline', syncStatus);
+    };
   }, []);
 
-  // ── User Chats Subscription ────────────────────────────────────────────────
+  // Close user menu on outside tap/click
   useEffect(() => {
-    if (!user) {
-      setUserChats([]);
-      return;
-    }
-    const unsubscribe = subscribeToUserChats(user.uid, (chats) => {
-      setUserChats(chats);
+    if (!showUserMenu) return;
+    const handleOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('pointerdown', handleOutside);
+    return () => document.removeEventListener('pointerdown', handleOutside);
+  }, [showUserMenu]);
+
+  // Escape key closes topmost open overlay or dropdown
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key !== 'Escape') return;
+      if (showUserMenu) setShowUserMenu(false);
+      else if (activeFriendProfile) setActiveFriendProfile(null);
+      else if (isChatOpen) {
+        setIsChatOpen(false);
+        setActiveChatFriend(null);
+      } else if (isFriendsOpen) {
+        setIsFriendsOpen(false);
+        setShareTarget(null);
+      } else if (isImportOpen) setIsImportOpen(false);
+      else if (isAuthOpen) setIsAuthOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showUserMenu, activeFriendProfile, isChatOpen, isFriendsOpen, isImportOpen, isAuthOpen]);
+
+  // PWA shortcuts (?action=scan|recipes|chat) and Web Share Target (?url=&text=&title=)
+  useEffect(() => {
+    const intent = parseLaunchIntent(window.location.search);
+    if (!intent) return;
+
+    queueMicrotask(() => {
+      if (intent.type === 'open_scan') {
+        setIsImportOpen(true);
+      } else if (intent.type === 'open_recipes') {
+        setViewMode('list');
+        setSidebarOpen(true);
+      } else if (intent.type === 'open_chat') {
+        setPendingChatLaunch(true);
+      } else if (intent.type === 'share_import') {
+        setScanTab(intent.scanTab);
+        if (intent.url) setUrl(intent.url);
+        if (intent.rawText) setRawText(intent.rawText);
+        setError('');
+        setIsImportOpen(true);
+      }
     });
-    return () => unsubscribe();
+
+    window.history.replaceState({}, '', window.location.pathname);
+  }, []);
+
+  useEffect(() => {
+    if (!pendingChatLaunch || user === undefined) return;
+    queueMicrotask(() => {
+      setPendingChatLaunch(false);
+      if (user) {
+        setIsChatOpen(true);
+      } else {
+        setIsAuthOpen(true);
+        showToast('Sign in to open Kitchen Chat');
+      }
+    });
+  }, [pendingChatLaunch, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    return subscribeToUserChats(user.uid, setUserChats);
   }, [user]);
 
-  // ── TikTok Embed script dynamic re-evaluation ──────────────────────────────
-  useEffect(() => {
-    if (activeRecipe?.iframeHtml) {
-      // Remove any existing script tag to force a re-evaluation reload
-      const oldScript = document.getElementById('tiktok-embed-script');
-      if (oldScript) {
-        oldScript.remove();
-      }
+  const isMountedRef = useRef(true);
+  const isIllustratingRef = useRef(false);
 
-      // Re-trigger global widget rendering if loaded, otherwise add script
-      if (window.tiktok && typeof window.tiktok.embed === 'object' && typeof window.tiktok.embed.render === 'function') {
-        window.tiktok.embed.render();
-      } else {
-        const script = document.createElement('script');
-        script.id = 'tiktok-embed-script';
-        script.src = 'https://www.tiktok.com/embed.js';
-        script.async = true;
-        document.body.appendChild(script);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // Retroactively generate title-based AI image illustrations for all saved recipes
+  useEffect(() => {
+    if (isOffline || recipes.length === 0 || isIllustratingRef.current) return;
+
+    const pending = recipes.filter((r) => {
+      if (!needsDishVisualBackfill(r)) return false;
+      const attemptKey = `${r.id}:${r.title}`;
+      return !attemptedVisualKeysRef.current.has(attemptKey);
+    });
+
+    if (pending.length === 0) return;
+
+    isIllustratingRef.current = true;
+
+    (async () => {
+      try {
+        const CHUNK_SIZE = 3;
+        let queue = [...pending];
+        let rateLimitRetries = 0;
+
+        while (queue.length > 0) {
+          if (!isMountedRef.current || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            break;
+          }
+          const batch = queue.slice(0, CHUNK_SIZE);
+          const res = await fetch('/api/illustrate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipes: batch.map((r) => ({
+                id: r.id,
+                title: r.title,
+                category: r.category,
+                illustrationDescription:
+                  r.illustrationDescription || r.dishVisual?.illustrationDescription || '',
+                ingredients: Array.isArray(r.ingredients)
+                  ? r.ingredients.slice(0, 6).map((ing) => ing?.name).filter(Boolean)
+                  : [],
+              })),
+            }),
+          });
+
+          if (res.status === 429) {
+            const errBody = await res.json().catch(() => ({}));
+            const retrySec = Number(errBody?.retryAfterSeconds);
+            if (Number.isFinite(retrySec) && retrySec > 0 && retrySec <= 50 && rateLimitRetries < 2) {
+              rateLimitRetries += 1;
+              await new Promise((resolve) => setTimeout(resolve, (retrySec + 1) * 1000));
+              continue;
+            }
+            console.warn('Stopping dish illustration backfill:', errBody?.error || res.status);
+            break;
+          }
+          if (res.status === 503) {
+            const errBody = await res.json().catch(() => ({}));
+            console.warn('Stopping dish illustration backfill:', errBody?.error || res.status);
+            break;
+          }
+          if (!res.ok) {
+            batch.forEach((r) => attemptedVisualKeysRef.current.add(`${r.id}:${r.title}`));
+            queue = queue.slice(batch.length);
+            continue;
+          }
+
+          rateLimitRetries = 0;
+          const data = await res.json();
+          const visuals = data?.visuals || {};
+          const returnedIds = new Set(Object.keys(visuals));
+          if (returnedIds.size === 0) {
+            batch.forEach((r) => attemptedVisualKeysRef.current.add(`${r.id}:${r.title}`));
+            queue = queue.slice(batch.length);
+            continue;
+          }
+
+          const compressedVisuals = {};
+          for (const [id, visual] of Object.entries(visuals)) {
+            const matched = batch.find((r) => String(r.id) === id);
+            if (matched) {
+              attemptedVisualKeysRef.current.add(`${matched.id}:${matched.title}`);
+            }
+            if (visual?.imageUrl) {
+              compressedVisuals[id] = {
+                ...visual,
+                imageUrl: await compressDishImageDataUrl(visual.imageUrl),
+              };
+            }
+          }
+          if (isMountedRef.current && Object.keys(compressedVisuals).length > 0) {
+            await updateRecipeVisuals(compressedVisuals);
+          }
+          queue = queue.filter((r) => !returnedIds.has(String(r.id)));
+        }
+      } catch (err) {
+        console.error('Retroactive dish illustration error:', err);
+      } finally {
+        isIllustratingRef.current = false;
       }
+    })();
+  }, [recipes, isOffline, updateRecipeVisuals]);
+
+  // TikTok embed script re-evaluation
+  useEffect(() => {
+    if (!activeRecipe?.iframeHtml) return;
+    document.getElementById('tiktok-embed-script')?.remove();
+    if (typeof window.tiktok?.embed?.render === 'function') {
+      window.tiktok.embed.render();
+    } else {
+      const script = document.createElement('script');
+      script.id = 'tiktok-embed-script';
+      script.src = 'https://www.tiktok.com/embed.js';
+      script.async = true;
+      document.body.appendChild(script);
     }
   }, [activeRecipeId, activeRecipe?.iframeHtml]);
 
-  // ── Save recipes (localStorage or Firestore) ───────────────────────────────
-  const saveRecipesToStorage = async (newRecipes, newRecipe = null) => {
-    setRecipes(newRecipes);
-    if (user) {
-      if (newRecipe) await saveRecipeToFirestore(user.uid, newRecipe);
-    } else {
-      localStorage.setItem('cheffone_recipes', JSON.stringify(newRecipes));
-    }
-  };
-
-  // ── Rotate loader tips ─────────────────────────────────────────────────────
+  // Rotate loader tips
   useEffect(() => {
-    let interval;
-    if (loading) {
-      interval = setInterval(() => {
-        setLoaderTipIndex((prev) => (prev + 1) % LOADER_TIPS.length);
-      }, 3000);
-    }
+    if (!loading) return;
+    const interval = setInterval(() => setLoaderTipIndex((p) => (p + 1) % LOADER_TIPS.length), 3000);
     return () => clearInterval(interval);
   }, [loading]);
+
+  // ── Selection helpers ──────────────────────────────────────────────────────
+  const selectRecipe = (r) => {
+    setPreviewRecipe(null);
+    setPreviewFromFriend(null);
+    setActiveRecipeId(r.id);
+    setViewMode('detail');
+    setAdjustedServings(r.servings || 2);
+    setCheckedIngredients({});
+  };
+
+  // Open a recipe received from a friend: switch to the saved copy, or preview it.
+  const openSharedRecipe = (recipe) => {
+    const saved = recipes.find((r) => r.id === recipe.id);
+    if (saved) {
+      setPreviewRecipe(null);
+      setActiveRecipeId(saved.id);
+    } else {
+      setPreviewRecipe({ ...recipe, isPreviewOnly: true });
+    }
+    setAdjustedServings(recipe.servings || 2);
+    setViewMode('detail');
+  };
 
   // ── Parse recipe ───────────────────────────────────────────────────────────
   const handleParseRecipe = async (e) => {
     e.preventDefault();
+    if (isOffline || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      setError('You are offline. Reconnect to parse a new recipe.');
+      return;
+    }
     if (!url.trim() && !rawText.trim()) {
       setError('Please enter a TikTok/Instagram URL or paste recipe details.');
       return;
     }
-
     if (!user) {
       setError('You must be signed in to scan recipes!');
       setIsAuthOpen(true);
       return;
     }
-
     if (url.trim()) {
       try {
-        const allowedDomains = ['instagram.com', 'instagr.am', 'tiktok.com', 'vm.tiktok.com'];
-        const parsedUrl = new URL(url.trim());
-        const host = parsedUrl.hostname.toLowerCase();
-        const isAllowed = allowedDomains.some(domain => host === domain || host.endsWith('.' + domain));
-
-        if (!isAllowed) {
+        const host = new URL(url.trim()).hostname.toLowerCase();
+        if (!ALLOWED_DOMAINS.some((d) => host === d || host.endsWith('.' + d))) {
           setError('Only TikTok and Instagram links are supported.');
           return;
         }
-      } catch (err) {
+      } catch {
         setError('Please enter a valid URL.');
         return;
       }
     }
 
-    // ── Check Daily Parse Limit (5 recipes per day) ──────────────────────────
-    const today = new Date().toISOString().split('T')[0];
     try {
-      const limitStatus = await getParseLimitStatus(user.uid, 5);
+      const limitStatus = await getParseLimitStatus(user.uid, DAILY_PARSE_LIMIT);
       if (!limitStatus.allowed) {
-        setError('Daily limit reached! You can parse up to 5 recipes per day.');
+        setError(`Daily limit reached! You can parse up to ${DAILY_PARSE_LIMIT} recipes per day.`);
         return;
       }
     } catch (err) {
-      console.error("Failed to check parse limit:", err);
+      console.error('Failed to check parse limit:', err);
     }
 
     setLoading(true);
@@ -388,20 +418,22 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, rawText }),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.error || 'Failed to parse recipe. Please check your URL or API key.');
       }
+      if (!data.recipe) throw new Error('API returned successfully but no recipe data was parsed.');
 
-      const parsedRecipe = data.recipe;
-      if (!parsedRecipe) {
-        throw new Error('API returned successfully but no recipe data was parsed.');
-      }
+      const compressedDishVisual = data.recipe?.dishVisual?.imageUrl
+        ? {
+            ...data.recipe.dishVisual,
+            imageUrl: await compressDishImageDataUrl(data.recipe.dishVisual.imageUrl),
+          }
+        : data.recipe?.dishVisual;
 
       const newRecipe = {
-        ...parsedRecipe,
+        ...data.recipe,
+        ...(compressedDishVisual ? { dishVisual: compressedDishVisual } : {}),
         id: Date.now().toString(),
         sourceUrl: url,
         videoUrl: data.metadata?.videoUrl || '',
@@ -409,23 +441,21 @@ export default function Home() {
         parsedAt: new Date().toISOString(),
       };
 
-      const updatedRecipes = [newRecipe, ...recipes];
-      await saveRecipesToStorage(updatedRecipes, newRecipe);
+      await saveRecipe(newRecipe);
+      setPreviewRecipe(null);
       setActiveRecipeId(newRecipe.id);
       setViewMode('detail');
       setAdjustedServings(newRecipe.servings || 2);
       setCheckedIngredients({});
       setUrl('');
       setRawText('');
-      setShowFallback(false);
       setActiveTab('recipe');
       setIsImportOpen(false);
 
-      // ── Increment Daily Parse Limit Counter ────────────────────────────────
       try {
         await incrementParseCount(user.uid);
       } catch (err) {
-        console.error("Failed to increment parse count:", err);
+        console.error('Failed to increment parse count:', err);
       }
     } catch (err) {
       console.error(err);
@@ -435,39 +465,15 @@ export default function Home() {
     }
   };
 
-  // ── Delete recipe ──────────────────────────────────────────────────────────
-  const handleDeleteRecipe = async (id, e) => {
-    e.stopPropagation();
-    const filtered = recipes.filter((r) => r.id !== id);
-    setRecipes(filtered);
-    if (user) {
-      await deleteRecipeFromFirestore(user.uid, id);
-    } else {
-      localStorage.setItem('cheffone_recipes', JSON.stringify(filtered));
-    }
+  const handleDeleteRecipe = async (id) => {
+    const remaining = recipes.filter((r) => r.id !== id);
+    await removeRecipe(id);
     if (activeRecipeId === id) {
       setViewMode('list');
-      if (filtered.length > 0) {
-        setActiveRecipeId(filtered[0].id);
-        setAdjustedServings(filtered[0].servings || 2);
-      } else {
-        setActiveRecipeId(null);
-      }
+      setActiveRecipeId(remaining[0]?.id ?? null);
+      if (remaining[0]) setAdjustedServings(remaining[0].servings || 2);
       setCheckedIngredients({});
     }
-  };
-
-
-
-  const scaleQuantity = (quantity, originalServings) => {
-    if (quantity === null || quantity === undefined) return '';
-    const ratio = adjustedServings / (originalServings || 2);
-    const scaled = quantity * ratio;
-    return Math.round(scaled * 100) / 100;
-  };
-
-  const toggleIngredient = (index) => {
-    setCheckedIngredients((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
   // ── Social handlers ────────────────────────────────────────────────────────
@@ -482,55 +488,66 @@ export default function Home() {
 
   const handleSaveSharedRecipe = async (recipe) => {
     const newRecipe = { ...recipe, id: Date.now().toString(), savedFromFriend: true };
-    const updatedRecipes = [newRecipe, ...recipes];
-    await saveRecipesToStorage(updatedRecipes, newRecipe);
+    delete newRecipe.isPreviewOnly;
+    await saveRecipe(newRecipe);
     setActiveRecipeId(newRecipe.id);
     setAdjustedServings(newRecipe.servings || 2);
-    showToast('Recipe saved to your collection! 🍳');
+    showToast('Recipe saved to your collection!');
   };
 
   const totalUnreadChats = userChats.filter((c) => c.unreadBy?.includes(user?.uid)).length;
   const pendingCount = pendingRequests.length;
 
-  // ── User avatar chip ───────────────────────────────────────────────────────
-  const { signOut } = useAuth();
-  const [showUserMenu, setShowUserMenu] = useState(false);
+  const openChat = (friend = null) => {
+    setActiveChatFriend(friend);
+    setIsChatOpen(true);
+  };
+  const openFriends = () => {
+    setShareTarget(null);
+    setIsFriendsOpen(true);
+  };
 
   const renderUserChip = () => {
-    if (user === undefined) return null; // loading
+    if (user === undefined) return null;
     if (!user) {
       return (
-        <button
-          className={styles.syncButton}
-          onClick={() => setIsAuthOpen(true)}
-          title="Sign in to sync your recipes"
-        >
-          ☁️ Sync Recipes
-        </button>
+        <>
+          <button className={styles.syncButton} onClick={() => setIsAuthOpen(true)} title="Sign in to sync your recipes">
+            <Cloud size={16} /> Sync Recipes
+          </button>
+          <button
+            className={styles.mobileAvatarBtn}
+            onClick={() => setIsAuthOpen(true)}
+            aria-label="Sign in to sync recipes"
+            title="Sign in"
+          >
+            <User size={19} />
+          </button>
+        </>
       );
     }
     const initials = (user.displayName || user.email || '?').charAt(0).toUpperCase();
-    const photoURL = user.photoURL;
     return (
-      <div className={styles.userChipWrapper}>
+      <div className={styles.userChipWrapper} ref={userMenuRef}>
         <button
           className={styles.userChip}
           onClick={() => setShowUserMenu((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={showUserMenu}
           title={user.displayName || user.email}
         >
-          {photoURL
-            ? <img src={photoURL} alt="avatar" className={styles.userAvatar} referrerPolicy="no-referrer" />
-            : <span className={styles.userInitials}>{initials}</span>
-          }
+          {user.photoURL ? (
+            <img src={user.photoURL} alt="" className={styles.userAvatar} referrerPolicy="no-referrer" />
+          ) : (
+            <span className={styles.userInitials}>{initials}</span>
+          )}
           <span className={styles.userName}>{user.displayName || user.email?.split('@')[0]}</span>
           {isSyncing && <span className={styles.syncDot} title="Syncing..." />}
         </button>
         {showUserMenu && (
-          <div className={styles.userMenu}>
+          <div className={styles.userMenu} role="menu">
             <div className={styles.userMenuHeader}>
-              <div className={styles.userMenuName}>
-                {user.displayName || 'Chef Member'}
-              </div>
+              <div className={styles.userMenuName}>{user.displayName || 'Chef Member'}</div>
               <div className={styles.userMenuUsername}>
                 @{user.displayName ? user.displayName.toLowerCase().replace(/\s+/g, '') : user.email?.split('@')[0]}
               </div>
@@ -538,18 +555,25 @@ export default function Home() {
             </div>
             <button
               className={styles.userMenuItem}
+              role="menuitem"
               onClick={() => {
                 setShowUserMenu(false);
                 triggerInstallModal();
               }}
             >
-              📲 Install App
+              <Download size={16} /> Install App
             </button>
             <button
               className={styles.userMenuSignOut}
-              onClick={async () => { await signOut(); setShowUserMenu(false); setRecipes([]); setActiveRecipeId(null); }}
+              role="menuitem"
+              onClick={async () => {
+                await signOut();
+                setShowUserMenu(false);
+                clearRecipes();
+                setActiveRecipeId(null);
+              }}
             >
-              Sign Out
+              <LogOut size={16} /> Sign Out
             </button>
           </div>
         )}
@@ -559,22 +583,20 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      {/* Auth Modal */}
       {isAuthOpen && <AuthModal onClose={() => setIsAuthOpen(false)} />}
 
-      {/* Friends Modal */}
       {isFriendsOpen && (
         <FriendsModal
           currentUser={user}
-          onClose={() => { setIsFriendsOpen(false); setShareTarget(null); }}
-          recipeToShare={shareTarget}
-          onShared={(friendName) => {
-            showToast(`Recipe sent in chat to ${friendName}! 📤`);
+          onClose={() => {
+            setIsFriendsOpen(false);
+            setShareTarget(null);
           }}
+          recipeToShare={shareTarget}
+          onShared={(friendName) => showToast(`Recipe sent in chat to ${friendName}!`)}
           onOpenChat={(friend) => {
             setIsFriendsOpen(false);
-            setActiveChatFriend(friend);
-            setIsChatOpen(true);
+            openChat(friend);
           }}
           onOpenProfile={(friend) => {
             setIsFriendsOpen(false);
@@ -585,25 +607,19 @@ export default function Home() {
         />
       )}
 
-      {/* Kitchen Chat Modal */}
       {isChatOpen && (
         <ChatModal
           currentUser={user}
           initialFriend={activeChatFriend}
-          onClose={() => { setIsChatOpen(false); setActiveChatFriend(null); }}
+          onClose={() => {
+            setIsChatOpen(false);
+            setActiveChatFriend(null);
+          }}
           onSelectRecipe={(recipe) => {
             setIsChatOpen(false);
             setIsFriendsOpen(false);
             setActiveFriendProfile(null);
-            const saved = recipes.find((r) => r.id === recipe.id);
-            if (saved) {
-              setPreviewRecipe(null);
-              setActiveRecipeId(saved.id);
-            } else {
-              setPreviewRecipe({ ...recipe, isPreviewOnly: true });
-            }
-            setAdjustedServings(recipe.servings || 2);
-            setViewMode('detail');
+            openSharedRecipe(recipe);
           }}
           onSaveRecipe={handleSaveSharedRecipe}
           onOpenProfile={(friend) => {
@@ -615,7 +631,6 @@ export default function Home() {
         />
       )}
 
-      {/* Friend Profile & Saved Recipes Modal */}
       {activeFriendProfile && (
         <FriendProfileModal
           friend={activeFriendProfile}
@@ -629,34 +644,25 @@ export default function Home() {
           onOpenChat={(friend) => {
             setActiveFriendProfile(null);
             setIsFriendsOpen(false);
-            setActiveChatFriend(friend);
-            setIsChatOpen(true);
+            openChat(friend);
           }}
           onSelectRecipe={(recipe) => {
             setPreviewFromFriend(activeFriendProfile);
             setActiveFriendProfile(null);
             setIsFriendsOpen(false);
             setIsChatOpen(false);
-            const saved = recipes.find((r) => r.id === recipe.id);
-            if (saved) {
-              setPreviewRecipe(null);
-              setActiveRecipeId(saved.id);
-            } else {
-              setPreviewRecipe({ ...recipe, isPreviewOnly: true });
-            }
-            setAdjustedServings(recipe.servings || 2);
-            setViewMode('detail');
+            openSharedRecipe(recipe);
           }}
           onSaveRecipe={handleSaveSharedRecipe}
         />
       )}
 
-      {/* Toast */}
       {toast && (
-        <div className={styles.toast}>{toast}</div>
+        <div className={styles.toast} role="status">
+          {toast}
+        </div>
       )}
 
-      {/* Header */}
       <header className={styles.header}>
         <div className={styles.logo}>
           <span className={styles.fastFoodIcon}>🍔</span>
@@ -665,127 +671,50 @@ export default function Home() {
           </div>
         </div>
         <div className={styles.headerActions}>
+          <ThemeToggle className={styles.socialBtn} />
           {user && (
             <>
-              <button
-                className={styles.socialBtn}
-                onClick={() => { setActiveChatFriend(null); setIsChatOpen(true); }}
-                title="Kitchen Chat"
-              >
-                💬
+              <button className={styles.socialBtn} onClick={() => openChat()} aria-label="Kitchen Chat" title="Kitchen Chat">
+                <MessageCircle size={18} />
                 {totalUnreadChats > 0 && <span className={styles.socialBadge}>{totalUnreadChats}</span>}
               </button>
-              <button
-                className={styles.socialBtn}
-                onClick={() => { setShareTarget(null); setIsFriendsOpen(true); }}
-                title="Friends"
-              >
-                👥
+              <button className={styles.socialBtn} onClick={openFriends} aria-label="Friends" title="Friends">
+                <Users size={18} />
                 {pendingCount > 0 && <span className={styles.socialBadge}>{pendingCount}</span>}
               </button>
             </>
           )}
           {renderUserChip()}
-          <button
-            onClick={() => setIsImportOpen(true)}
-            className={styles.primaryButton}
-            style={{ padding: '0.8rem 1.6rem', fontSize: '1rem' }}
-          >
-            ⚡ Scan New Recipe
+          <button onClick={() => setIsImportOpen(true)} className={`${styles.primaryButton} ${styles.headerScanBtn}`}>
+            <Zap size={18} /> Scan New Recipe
           </button>
         </div>
       </header>
 
-      {/* Import Link Overlay Modal */}
-      {isImportOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsImportOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button
-              className={styles.modalClose}
-              onClick={() => setIsImportOpen(false)}
-              title="Close window"
-            >
-              ✕
-            </button>
-
-            <div className={styles.parseHeader}>
-              <div className={styles.stickerBadge}>⚡ CHEFFONE AI SCANNER</div>
-              <h2 className={styles.parseTitle}>Scan &amp; Extract Recipe</h2>
-              <div className={styles.platformPills}>
-                <span className={styles.platformPill}>🎵 TikTok</span>
-                <span className={styles.platformPill}>📸 Instagram Reels</span>
-              </div>
-            </div>
-
-            {/* Scan Mode Tabs */}
-            <div className={styles.scanModeTabs}>
-              <button
-                type="button"
-                className={`${styles.scanTab} ${scanTab === 'link' ? styles.scanTabActive : ''}`}
-                onClick={() => setScanTab('link')}
-              >
-                🔗 Video URL Link
-              </button>
-              <button
-                type="button"
-                className={`${styles.scanTab} ${scanTab === 'text' ? styles.scanTabActive : ''}`}
-                onClick={() => setScanTab('text')}
-              >
-                📝 Caption / Raw Text
-              </button>
-            </div>
-
-            {scanTab === 'link' ? (
-              <form onSubmit={handleParseRecipe} className={styles.scanForm}>
-                <div className={styles.urlInputContainer}>
-                  <span className={styles.inputLinkIcon}>🍟</span>
-                  <input
-                    type="url"
-                    className={styles.urlInput}
-                    placeholder="Paste video URL link here..."
-                    value={url}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setUrl(val);
-                      if (val.includes('instagram.com')) setScanTab('text');
-                    }}
-                  />
-                </div>
-                <button type="submit" className={styles.primaryButton} disabled={loading || !url.trim()}>
-                  {loading ? (
-                    <><span className={styles.spinnerMini}></span>Grilling...</>
-                  ) : (
-                    'Order Recipe ⚡'
-                  )}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleParseRecipe} className={styles.scanForm}>
-                <textarea
-                  className={styles.textarea}
-                  placeholder="Paste the video caption, ingredients list, or recipe notes here to parse..."
-                  value={rawText}
-                  onChange={(e) => setRawText(e.target.value)}
-                  rows={4}
-                />
-                <button type="submit" className={styles.primaryButton} disabled={loading || !rawText.trim()}>
-                  {loading ? (
-                    <><span className={styles.spinnerMini}></span>Grilling...</>
-                  ) : (
-                    'Parse Text & Order ⚡'
-                  )}
-                </button>
-              </form>
-            )}
-
-            {error && <div className={styles.errorAlert}>⚠️ {error}</div>}
-          </div>
+      {isOffline && (
+        <div className={styles.offlineBanner} role="status" aria-live="polite">
+          <WifiOff size={16} />
+          <span>Offline mode — your saved recipes and checklists remain available.</span>
         </div>
       )}
 
-      {/* Loading Overlay */}
+      {isImportOpen && (
+        <ImportModal
+          onClose={() => setIsImportOpen(false)}
+          scanTab={scanTab}
+          setScanTab={setScanTab}
+          url={url}
+          setUrl={setUrl}
+          rawText={rawText}
+          setRawText={setRawText}
+          loading={loading}
+          error={error}
+          onSubmit={handleParseRecipe}
+        />
+      )}
+
       {loading && (
-        <div className={styles.loaderOverlay}>
+        <div className={styles.loaderOverlay} role="status" aria-live="polite">
           <div className={styles.loaderContainer}>
             <div className={styles.loaderSpinner}>
               <div className={styles.loaderInnerRing}></div>
@@ -796,477 +725,116 @@ export default function Home() {
         </div>
       )}
 
-      {/* Main Board */}
-      <main className={`${styles.mainLayout} ${!sidebarOpen ? styles.mainLayoutCollapsed : ''} ${viewMode === 'detail' ? styles.mobileShowDetail : styles.mobileShowList}`}>
-        {/* Sidebar - Saved Recipes */}
-        <aside className={`${styles.sidebar} ${!sidebarOpen ? styles.sidebarCollapsed : ''}`}>
-          <div className={styles.sidebarHeader}>
-            {sidebarOpen && <h3 className={styles.sidebarTitle}>Order Board</h3>}
-            {sidebarOpen && <span className={styles.recipeCountBadge}>{recipes.length} ITEMS</span>}
-            <button
-              className={styles.sidebarToggle}
-              onClick={() => setSidebarOpen(v => !v)}
-              title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            >
-              {sidebarOpen ? '‹' : '›'}
-            </button>
-          </div>
+      <main
+        className={`${styles.mainLayout} ${!sidebarOpen ? styles.mainLayoutCollapsed : ''} ${
+          viewMode === 'detail' ? styles.mobileShowDetail : styles.mobileShowList
+        }`}
+      >
+        <Sidebar
+          recipes={recipes}
+          activeRecipeId={activeRecipeId}
+          open={sidebarOpen}
+          onToggle={() => setSidebarOpen((v) => !v)}
+          onSelect={selectRecipe}
+          onDelete={handleDeleteRecipe}
+          onExpand={() => setSidebarOpen(true)}
+          onExpandAndSelect={(r) => {
+            selectRecipe(r);
+            setSidebarOpen(true);
+          }}
+        />
 
-          {sidebarOpen && (
-            <div className={styles.recipeList}>
-              {recipes.length === 0 ? (
-                <div className={styles.emptyState}>
-                  <span className={styles.emptyIcon}>🥤</span>
-                  <p>Your order board is empty.</p>
-                  <p className={styles.emptyTextSub}>Scan a video link to order your first recipe!</p>
-                </div>
-              ) : (
-                recipes.map((r) => (
-                  <div
-                    key={r.id}
-                    className={`${styles.recipeCardItem} ${activeRecipeId === r.id ? styles.recipeCardActive : ''}`}
-                    onClick={() => {
-                      setPreviewRecipe(null);
-                      setPreviewFromFriend(null);
-                      setActiveRecipeId(r.id);
-                      setViewMode('detail');
-                      setAdjustedServings(r.servings || 2);
-                      setCheckedIngredients({});
-                    }}
-                  >
-                    <div className={styles.recipeCardInfo}>
-                      <span className={styles.recipeCardTitle}>{r.title}</span>
-                      <div className={styles.recipeCardMeta}>
-                        <span>⏱️ {r.prepTime || 'N/A'}</span>
-                        <span className={styles.metaDivider}>•</span>
-                        <span>🏷️ {r.category}</span>
-                      </div>
-                    </div>
-                    <div className={styles.recipeCardActions}>
-                      <button
-                        className={styles.deleteButton}
-                        onClick={(e) => handleDeleteRecipe(r.id, e)}
-                        title="Delete recipe"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-          {!sidebarOpen && recipes.length > 0 && (
-            <div className={styles.collapsedDots}>
-              {recipes.slice(0, 6).map((r) => (
-                <div
-                  key={r.id}
-                  className={`${styles.collapsedDot} ${activeRecipeId === r.id ? styles.collapsedDotActive : ''}`}
-                  onClick={() => { setActiveRecipeId(r.id); setViewMode('detail'); setAdjustedServings(r.servings || 2); setSidebarOpen(true); }}
-                  title={r.title}
-                />
-              ))}
-              {recipes.length > 6 && (
-                <div className={styles.collapsedMore} onClick={() => setSidebarOpen(true)} title="Show all recipes">
-                  +{recipes.length - 6}
-                </div>
-              )}
-            </div>
-          )}
-        </aside>
-
-        {/* Active Recipe Panel */}
         <section className={styles.recipeDetailContainer}>
-          {activeRecipe ? (
-            <div className={styles.recipeDetail}>
-              {/* Header details */}
-              <div className={styles.recipeHeaderBlock}>
-                <button
-                  className={previewFromFriend ? styles.backToProfileBtnDesktop : styles.mobileBackBtn}
-                  onClick={() => {
-                    if (previewFromFriend) {
-                      const f = previewFromFriend;
-                      setPreviewRecipe(null);
-                      setPreviewFromFriend(null);
-                      setActiveFriendProfile(f);
-                    } else {
-                      setViewMode('list');
-                    }
-                  }}
-                  title={previewFromFriend ? "Back to friend profile" : "Back to board"}
-                >
-                  {previewFromFriend
-                    ? `← Back to ${previewFromFriend.displayName?.split(' ')[0] || 'Chef'}'s Profile`
-                    : '← Back to Board'
-                  }
-                </button>
-                <div className={styles.titleArea}>
-                  <div className={styles.titleBadgeContainer}>
-                    <span className={styles.categoryBadge}>{activeRecipe.category || 'Recipe'}</span>
-                    {activeRecipe.difficulty && (
-                      <span className={`${styles.categoryBadge} ${styles.difficultyBadge}`}>
-                        {activeRecipe.difficulty}
-                      </span>
-                    )}
-                  </div>
-                  <h2 className={styles.recipeTitle}>{activeRecipe.title}</h2>
-                </div>
-
-                {/* Servings scale control */}
-                <div className={styles.headerControls}>
-                  <div className={styles.servingAdjuster}>
-                    <span className={styles.servingLabel}>SIZE:</span>
-                    <button
-                      className={styles.adjustBtn}
-                      onClick={() => setAdjustedServings(Math.max(1, adjustedServings - 1))}
-                    >
-                      —
-                    </button>
-                    <span className={styles.servingCount}>{adjustedServings}</span>
-                    <button
-                      className={styles.adjustBtn}
-                      onClick={() => setAdjustedServings(adjustedServings + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                  {activeRecipe.isPreviewOnly && !recipes.some((r) => r.id === activeRecipe.id) ? (
-                    <button
-                      className={styles.savePreviewBtn}
-                      onClick={() => {
-                        handleSaveSharedRecipe(activeRecipe);
-                        setPreviewRecipe(null);
-                      }}
-                      title="Save this shared recipe to your collection"
-                    >
-                      🍳 Save to My Collection
-                    </button>
-                  ) : (
-                    <button
-                      className={styles.detailShareBtn}
-                      onClick={() => handleShareRecipe(activeRecipe)}
-                      title="Share recipe with friends"
-                    >
-                      📤 Share with Friends
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Metadata Grid */}
-              <div className={styles.metadataGrid}>
-                <div className={styles.metaItem}>
-                  <span className={styles.metaIcon}>⏱️</span>
-                  <div className={styles.metaText}>
-                    <span className={styles.metaLabel}>Prep Time</span>
-                    <span className={styles.metaValue}>{activeRecipe.prepTime || 'N/A'}</span>
-                  </div>
-                </div>
-                <div className={styles.metaItem}>
-                  <span className={styles.metaIcon}>🔥</span>
-                  <div className={styles.metaText}>
-                    <span className={styles.metaLabel}>Cook Time</span>
-                    <span className={styles.metaValue}>{activeRecipe.cookTime || 'N/A'}</span>
-                  </div>
-                </div>
-                <div className={styles.metaItem}>
-                  <span className={styles.metaIcon}>🍔</span>
-                  <div className={styles.metaText}>
-                    <span className={styles.metaLabel}>Difficulty</span>
-                    <span className={styles.metaValue}>{activeRecipe.difficulty || 'Easy'}</span>
-                  </div>
-                </div>
-                {activeRecipe.sourceUrl && (
-                  <div className={styles.metaItem}>
-                    <span className={styles.metaIcon}>🎬</span>
-                    <div className={styles.metaText}>
-                      <span className={styles.metaLabel}>Source</span>
-                      <a href={activeRecipe.sourceUrl} target="_blank" rel="noopener noreferrer" className={styles.metaLink}>
-                        View Video
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Tab System */}
-              <div className={styles.tabsContainer}>
-                <div className={styles.tabs}>
-                  <button
-                    className={`${styles.tab} ${activeTab === 'recipe' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('recipe')}
-                  >
-                    🍔 Meal Board &amp; Video Player
-                  </button>
-                  <button
-                    className={`${styles.tab} ${activeTab === 'nutrition' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('nutrition')}
-                  >
-                    🍟 Nutrition Facts Ticket
-                  </button>
-                </div>
-              </div>
-
-              {/* Tab content */}
-              <div className={styles.tabContent}>
-                {/* Ingredients & Steps */}
-                {activeTab === 'recipe' && (
-                  <div className={styles.culinaryGrid}>
-                    {/* Left Side: Embedded Video */}
-                    <div className={styles.leftMediaColumn}>
-                      {activeRecipe.iframeHtml ? (
-                        playVideoId === activeRecipe.id ? (
-                          <div className={styles.videoCard}>
-                            <div className={styles.videoCardTab}>TIKTOK PREVIEW 🎬</div>
-                            <div
-                              className={styles.iframeContainer}
-                              dangerouslySetInnerHTML={{ __html: activeRecipe.iframeHtml }}
-                            />
-                          </div>
-                        ) : (
-                          <div
-                            className={styles.videoFacade}
-                            onClick={() => setPlayVideoId(activeRecipe.id)}
-                            title="Tap to load video preview"
-                          >
-                            <span className={styles.videoFacadeBadge}>TIKTOK FEED 🎬</span>
-                            <div className={styles.videoFacadePlayBtn}>
-                              <span className={styles.playIcon}>▶</span>
-                            </div>
-                            <span className={styles.videoFacadeText}>Load Video Feed</span>
-                            <span className={styles.videoFacadeSub}>Tapping pulls tracking scripts and video media</span>
-                          </div>
-                        )
-                      ) : activeRecipe.videoUrl ? (
-                        <div className={styles.videoCard}>
-                          <div className={styles.videoCardTab}>NOW PLAYING 🎬</div>
-                          <div className={styles.videoPlayerWrapper}>
-                            <video
-                              src={activeRecipe.videoUrl}
-                              controls
-                              playsInline
-                              className={styles.videoElement}
-                              preload="metadata"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className={styles.videoCardPlaceholder}>
-                          <span className={styles.placeholderIcon}>🎬</span>
-                          <p className={styles.placeholderTitle}>No Video Feed</p>
-                          <span className={styles.placeholderSub}>
-                            Add your RAPIDAPI_KEY to download and watch the recipe video right inside the app!
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Right Side: Ingredients & Directions */}
-                    <div className={styles.rightContentColumn}>
-                      {/* Ingredients */}
-                      <div className={styles.ingredientsCard}>
-                        <h4 className={styles.sectionHeading}>Ingredients Checklist</h4>
-                        <p className={styles.sectionSubtitle}>Scale sizes above. Check items as you toss them in.</p>
-                        <div className={styles.ingredientsList}>
-                          {activeRecipe.ingredients?.map((ing, idx) => (
-                            <label
-                              key={idx}
-                              className={`${styles.ingredientItem} ${checkedIngredients[idx] ? styles.ingredientChecked : ''}`}
-                              onClick={() => toggleIngredient(idx)}
-                            >
-                              <div className={styles.checkboxWrapper}>
-                                <input type="checkbox" className={styles.checkbox} checked={!!checkedIngredients[idx]} readOnly />
-                                <span className={styles.customCheckbox}></span>
-                              </div>
-                              <span className={styles.ingredientText}>
-                                <strong className={styles.quantityHighlight}>
-                                  {scaleQuantity(ing.quantity, activeRecipe.servings)} {ing.unit}
-                                </strong>{' '}
-                                {ing.name}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Directions */}
-                      <div className={styles.instructionsCard}>
-                        <h4 className={styles.sectionHeading}>Cooking Directions</h4>
-                        <div className={styles.instructionsList}>
-                          {activeRecipe.instructions?.map((step, idx) => (
-                            <div key={idx} className={styles.stepCard}>
-                              <div className={styles.stepIndicator}>
-                                <div className={styles.stepNumber}>{idx + 1}</div>
-                                {idx < activeRecipe.instructions.length - 1 && <div className={styles.stepConnector}></div>}
-                              </div>
-                              <div className={styles.stepContent}>
-                                <p>{step}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Nutrition */}
-                {activeTab === 'nutrition' && (
-                  <div className={styles.nutritionContainer}>
-
-                    {/* Health Score Banner */}
-                    {activeRecipe.nutrition?.healthScore && (
-                      <div className={styles.healthBanner}>
-                        <div className={styles.healthScoreWrap}>
-                          <span className={styles.healthScoreNum}>{activeRecipe.nutrition.healthScore}<span className={styles.healthScoreOf}>/10</span></span>
-                          <span className={styles.healthLabel}>{activeRecipe.nutrition.healthLabel || 'Health Score'}</span>
-                        </div>
-                        <div className={styles.healthScoreBar}>
-                          <div
-                            className={styles.healthScoreFill}
-                            style={{ width: `${(activeRecipe.nutrition.healthScore / 10) * 100}%` }}
-                          />
-                        </div>
-                        {activeRecipe.nutrition.healthSummary && (
-                          <p className={styles.healthSummary}>{activeRecipe.nutrition.healthSummary}</p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Benefits & Warnings */}
-                    {((activeRecipe.nutrition?.benefits?.length > 0) || (activeRecipe.nutrition?.warnings?.length > 0)) && (
-                      <div className={styles.healthChipsRow}>
-                        {activeRecipe.nutrition?.benefits?.map((b, i) => (
-                          <span key={i} className={styles.benefitChip}>✓ {b}</span>
-                        ))}
-                        {activeRecipe.nutrition?.warnings?.map((w, i) => (
-                          <span key={i} className={styles.warningChip}>⚠ {w}</span>
-                        ))}
-                      </div>
-                    )}
-
-
-                    {/* Macro Grid */}
-                    <div className={styles.nutritionHeader}>
-                      <h4 className={styles.sectionHeading}>Nutrition Facts</h4>
-                      <p className={styles.sectionSubtitle}>Estimated values per single serving size.</p>
-                    </div>
-
-                    <div className={styles.nutritionGrid}>
-                      <div className={`${styles.nutritionCard} ${styles.calCard}`}>
-                        <span className={styles.nutritionVal}>{activeRecipe.nutrition?.calories || '—'}</span>
-                        <span className={styles.nutritionLabel}>Calories</span>
-                        <div className={styles.macroIndicator} style={{ background: 'var(--accent-primary)' }}></div>
-                      </div>
-                      <div className={`${styles.nutritionCard} ${styles.protCard}`}>
-                        <span className={styles.nutritionVal}>{activeRecipe.nutrition?.protein || '—'}</span>
-                        <span className={styles.nutritionLabel}>Protein</span>
-                        <div className={styles.macroIndicator} style={{ background: 'var(--success)' }}></div>
-                      </div>
-                      <div className={`${styles.nutritionCard} ${styles.carbCard}`}>
-                        <span className={styles.nutritionVal}>{activeRecipe.nutrition?.carbs || '—'}</span>
-                        <span className={styles.nutritionLabel}>Carbs</span>
-                        <div className={styles.macroIndicator} style={{ background: 'var(--accent-yellow)' }}></div>
-                      </div>
-                      <div className={`${styles.nutritionCard} ${styles.fatCard}`}>
-                        <span className={styles.nutritionVal}>{activeRecipe.nutrition?.fat || '—'}</span>
-                        <span className={styles.nutritionLabel}>Fat</span>
-                        <div className={styles.macroIndicator} style={{ background: 'var(--text-primary)' }}></div>
-                      </div>
-                      {activeRecipe.nutrition?.fiber && (
-                        <div className={`${styles.nutritionCard} ${styles.fibCard}`}>
-                          <span className={styles.nutritionVal}>{activeRecipe.nutrition.fiber}</span>
-                          <span className={styles.nutritionLabel}>Fiber</span>
-                          <div className={styles.macroIndicator} style={{ background: '#7c3aed' }}></div>
-                        </div>
-                      )}
-                      {activeRecipe.nutrition?.sodium && (
-                        <div className={`${styles.nutritionCard} ${styles.fatCard}`}>
-                          <span className={styles.nutritionVal}>{activeRecipe.nutrition.sodium}</span>
-                          <span className={styles.nutritionLabel}>Sodium</span>
-                          <div className={styles.macroIndicator} style={{ background: '#f59e0b' }}></div>
-                        </div>
-                      )}
-                      {activeRecipe.nutrition?.sugar && (
-                        <div className={`${styles.nutritionCard} ${styles.calCard}`}>
-                          <span className={styles.nutritionVal}>{activeRecipe.nutrition.sugar}</span>
-                          <span className={styles.nutritionLabel}>Sugar</span>
-                          <div className={styles.macroIndicator} style={{ background: '#ec4899' }}></div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className={styles.nutritionDisclaimer}>
-                      <span className={styles.disclaimerIcon}>⚠️</span>
-                      <span>Macros and health analysis are estimated by Gemini AI. For precise medical dietary guidance, consult a professional.</span>
-                    </div>
-                  </div>
-                )}
-
-              </div>
-            </div>
-          ) : (
-            <div className={styles.emptyDetailState}>
-              <span className={styles.emptyStateIcon}>🍔</span>
-              <h3>Your Kitchen Awaits</h3>
-              <p>Select a recipe from the Order Board, or paste a TikTok / Instagram video link to scan a new one.</p>
-            </div>
-          )}
+          <RecipeDetail
+            recipe={activeRecipe}
+            isSaved={!!activeRecipe && recipes.some((r) => r.id === activeRecipe.id)}
+            previewFromFriend={previewFromFriend}
+            adjustedServings={adjustedServings}
+            setAdjustedServings={setAdjustedServings}
+            checkedIngredients={checkedIngredients}
+            onToggleIngredient={(i) => setCheckedIngredients((p) => ({ ...p, [i]: !p[i] }))}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            playVideoId={playVideoId}
+            setPlayVideoId={setPlayVideoId}
+            onBack={() => {
+              if (previewFromFriend) {
+                const f = previewFromFriend;
+                setPreviewRecipe(null);
+                setPreviewFromFriend(null);
+                setActiveFriendProfile(f);
+              } else {
+                setViewMode('list');
+              }
+            }}
+            onSaveShared={() => {
+              handleSaveSharedRecipe(activeRecipe);
+              setPreviewRecipe(null);
+            }}
+            onShare={() => handleShareRecipe(activeRecipe)}
+          />
         </section>
       </main>
 
-      {/* Sticky Bottom Tab Bar */}
-      <nav className={styles.bottomTabBar}>
+      <nav className={styles.bottomTabBar} aria-label="Primary">
         <button
-          className={`${styles.tabBarItem} ${viewMode === 'list' ? styles.tabBarItemActive : ''}`}
-          onClick={() => setViewMode('list')}
+          className={`${styles.tabBarItem} ${
+            viewMode === 'list' && !isImportOpen && !isFriendsOpen && !isChatOpen && !isAuthOpen && !activeFriendProfile
+              ? styles.tabBarItemActive
+              : ''
+          }`}
+          aria-current={viewMode === 'list' && !isImportOpen && !isFriendsOpen && !isChatOpen ? 'page' : undefined}
+          onClick={() => {
+            setIsImportOpen(false);
+            setIsFriendsOpen(false);
+            setIsChatOpen(false);
+            setIsAuthOpen(false);
+            setActiveFriendProfile(null);
+            setViewMode('list');
+          }}
         >
-          <span className={styles.tabBarIcon}>📋</span>
+          <span className={styles.tabBarIcon}><BookMarked size={21} /></span>
           <span className={styles.tabBarLabel}>Board</span>
         </button>
         <button
-          className={styles.tabBarItem}
+          className={`${styles.tabBarItem} ${isImportOpen ? styles.tabBarItemActive : ''}`}
+          aria-pressed={isImportOpen}
           onClick={() => setIsImportOpen(true)}
         >
-          <span className={styles.tabBarIcon}>⚡</span>
+          <span className={styles.tabBarIcon}><Zap size={22} /></span>
           <span className={styles.tabBarLabel}>Scan</span>
         </button>
         <button
-          className={styles.tabBarItem}
-          onClick={() => {
-            if (!user) {
-              setIsAuthOpen(true);
-            } else {
-              setShareTarget(null);
-              setIsFriendsOpen(true);
-            }
-          }}
+          className={`${styles.tabBarItem} ${isFriendsOpen ? styles.tabBarItemActive : ''}`}
+          aria-pressed={isFriendsOpen}
+          onClick={() => (user ? openFriends() : setIsAuthOpen(true))}
         >
-          <span className={styles.tabBarIcon}>👥</span>
+          <span className={styles.tabBarIcon}><Users size={22} /></span>
           <span className={styles.tabBarLabel}>Friends</span>
           {pendingCount > 0 && <span className={styles.tabBarBadge}>{pendingCount}</span>}
         </button>
         {user ? (
           <button
-            className={styles.tabBarItem}
-            onClick={() => { setActiveChatFriend(null); setIsChatOpen(true); }}
+            className={`${styles.tabBarItem} ${isChatOpen ? styles.tabBarItemActive : ''}`}
+            aria-pressed={isChatOpen}
+            onClick={() => openChat()}
           >
-            <span className={styles.tabBarIcon}>💬</span>
+            <span className={styles.tabBarIcon}><MessageCircle size={22} /></span>
             <span className={styles.tabBarLabel}>Chat</span>
             {totalUnreadChats > 0 && <span className={styles.tabBarBadge}>{totalUnreadChats}</span>}
           </button>
         ) : (
           <button
-            className={styles.tabBarItem}
+            className={`${styles.tabBarItem} ${isAuthOpen ? styles.tabBarItemActive : ''}`}
+            aria-pressed={isAuthOpen}
             onClick={() => setIsAuthOpen(true)}
           >
-            <span className={styles.tabBarIcon}>☁️</span>
+            <span className={styles.tabBarIcon}><Cloud size={22} /></span>
             <span className={styles.tabBarLabel}>Sync</span>
           </button>
         )}
       </nav>
 
-      {/* PWA Service Worker & Install Prompt */}
       <PWAInstallPrompt />
     </div>
   );

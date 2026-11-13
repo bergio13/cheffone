@@ -1,5 +1,5 @@
 // Cheffone Service Worker - PWA & Offline Support
-const CACHE_NAME = 'cheffone-v1';
+const CACHE_NAME = 'cheffone-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/icon.svg',
@@ -10,6 +10,12 @@ const PRECACHE_ASSETS = [
   '/apple-touch-icon.png',
   '/favicon.ico',
 ];
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
 
 // Install Event - Pre-cache core shell assets
 self.addEventListener('install', (event) => {
@@ -99,7 +105,7 @@ self.addEventListener('fetch', (event) => {
             }
             return networkResponse;
           })
-          .catch(() => cachedResponse);
+          .catch(() => cachedResponse || new Response('', { status: 503, statusText: 'Offline' }));
 
         return cachedResponse || fetchPromise;
       })
@@ -119,7 +125,7 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(request))
+      .catch(async () => (await caches.match(request)) || new Response('', { status: 503, statusText: 'Offline' }))
   );
 });
 

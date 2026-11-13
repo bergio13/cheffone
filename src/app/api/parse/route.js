@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateDishImage } from '@/lib/server/generateDishImage';
 
 // Robust helper to extract caption text from different RapidAPI JSON response styles
 function extractCaptionFromJson(data) {
@@ -301,6 +302,7 @@ Please respond with a JSON object that strictly adheres to the following JSON sc
   "difficulty": "Easy | Medium | Hard",
   "category": "Dinner | Breakfast | Dessert | Appetizer | Snack | Drink | Other",
   "description": "A compelling 1-2 sentence description of the dish, highlighting its appeal.",
+  "illustrationDescription": "A concise 30-40 word purely visual plating description for an illustrator: exact plate/bowl/glass, exact cooked food shape, hero ingredients, glaze/sauce, and garnish. Wholesome culinary words only; no camera, photography, background, or hex colors.",
   "ingredients": [
     {
       "name": "Name of ingredient, e.g., Olive Oil",
@@ -369,6 +371,18 @@ Ensure all ingredients have estimated numeric quantities where possible so they 
         parsedData = JSON.parse(responseText.substring(jsonStart, jsonEnd + 1));
       } else {
         throw parseError;
+      }
+    }
+
+    if (parsedData?.title) {
+      try {
+        parsedData.dishVisual = await generateDishImage({
+          title: parsedData.title,
+          description: parsedData.illustrationDescription,
+          apiKey: activeApiKey,
+        });
+      } catch (imgErr) {
+        console.warn('Non-fatal dish illustration error during parse:', imgErr?.message || imgErr);
       }
     }
 
