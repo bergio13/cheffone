@@ -24,20 +24,21 @@ function buildDishIllustrationPrompt(title, description, backdrop) {
   const colorName = BACKDROP_COLOR_NAMES[backdrop] || 'warm peach-cream';
   const subject = description?.trim()
     ? description.trim()
-    : `A freshly prepared serving of ${title}, plated appetizingly on a cream ceramic plate or bowl with fresh herb garnish`;
+    : `a freshly plated serving of ${title} on a round cream ceramic plate with fresh green herb garnish`;
 
   return [
-    'Appetizing cozy hand-drawn bistro storybook illustration, Studio Ghibli food art meets modern Bon Appetit editorial spot illustration, delicate warm dark-brown ink outlines, soft gouache cel-shading.',
-    `Subject centered (occupying ~68% of frame width with generous empty margin around the dish and empty top-right corner) viewed at a charming 35-degree isometric dining-table angle: ${subject}.`,
-    `Floating cleanly over a completely flat uniform matte ${colorName} solid color background with subtle soft oval shadow directly under the dish.`,
-    'Clean edges, NO table clutter, NO cutlery, NO hands, NO photography, NO text, NO words, NO signature, NO watermark.',
+    'Flat 2D vector food sticker illustration in a bold neo-brutalist modern diner app icon style:',
+    `${subject}.`,
+    'Thick uniform dark-charcoal black ink outlines (#1F1E1D), crisp flat solid cel-color fills, simplified clean geometric shapes, minimal flat highlight shapes, cheerful pop-art editorial menu badge aesthetic.',
+    `Single centered dish taking ~65% of the frame with generous empty margin over a completely flat solid uniform ${colorName} background and one crisp flat dark oval shadow directly under the plate.`,
+    'Strictly flat 2D graphic vector art matching a bold outlined mascot icon. NO painterly brushwork, NO watercolor, NO gouache, NO soft shading, NO gradients, NO 3D render, NO photography, NO cutlery, NO text, NO watermark.',
   ].join(' ');
 }
 
 /**
  * Uses Gemini text generation (free-tier friendly) to turn recipe titles and
- * optional ingredients into vivid, unmistakable visual plating descriptions
- * before passing them to the image generation model.
+ * optional ingredients into crisp, iconic shape-and-color dish descriptions
+ * matching Cheffone's flat 2D vector style before image generation.
  */
 export async function enhanceDishDescriptions(recipes, apiKey) {
   const cleanKey = apiKey?.trim();
@@ -52,12 +53,12 @@ export async function enhanceDishDescriptions(recipes, apiKey) {
 
   try {
     const ai = new GoogleGenAI({ apiKey: cleanKey });
-    const prompt = `You are an art director for a modern cookbook app. For each recipe below, write ONE concise 30-to-40-word visual plating description of ONLY the finished dish so an illustrator draws it accurately and appetizingly.
+    const prompt = `You are an art director for a bold neo-brutalist recipe app with flat 2D vector icon illustrations. For each recipe below, write ONE concise 25-to-35-word visual description of ONLY the finished dish so a vector icon artist draws it clearly.
 
 Include:
-- Exact vessel (shallow stoneware plate, deep ceramic ramen bowl, white shallow pasta plate, rustic wooden board, tall clear glass).
-- Exact cooked form, key hero ingredients, sauce glaze, and vibrant herb garnish (e.g., folded golden French omelet filled with crispy roasted diced potatoes and chives; creamy swirled pasta with flaky salmon pieces, roasted feta, cherry tomatoes, and basil; crispy grilled triangular pita flatbreads filled with seasoned beef on an oval plate with tahini sauce and parsley).
-- Use wholesome culinary phrasing; avoid words like meat-stuffed, smear, naked, breast, or photography/camera terms, backgrounds, or hex colors.
+- Simple light-colored vessel (round cream ceramic plate, deep cream ceramic bowl, rustic wood board, tall clear glass — never dark slate).
+- Distinct recognizable food shape, vibrant flat hero ingredient colors, sauce drizzle, and fresh green garnish (e.g., golden folded French omelet topped with crispy diced potatoes and green chives on a cream plate; deep cream bowl of swirled pasta with orange salmon chunks, red cherry tomatoes, white feta cubes, and green basil).
+- Use wholesome culinary phrasing; avoid camera/shot/lighting words, backgrounds, or hex colors.
 
 Recipes:
 ${JSON.stringify(
@@ -134,6 +135,7 @@ async function runCloudflareModel(accountId, apiToken, model, body, providerName
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000),
     }
   );
   const data = await res.json().catch(() => ({}));
@@ -156,32 +158,39 @@ async function tryCloudflareProviders(prompt, fallbackPrompt, seed) {
 
   for (const activePrompt of [prompt, fallbackPrompt]) {
     try {
+      // FLUX.1-schnell (4 steps, no `seed` param allowed by schema) keeps daily neuron usage low and runs in ~1-2s
       return await runCloudflareModel(
         accountId,
         apiToken,
-        '@cf/leonardo/lucid-origin',
-        { prompt: activePrompt, width: 512, height: 512, steps: 16, seed },
-        'cloudflare-lucid-origin'
+        '@cf/black-forest-labs/flux-1-schnell',
+        { prompt: activePrompt, steps: 4 },
+        'cloudflare-flux-schnell'
       );
-    } catch (lucidErr) {
-      console.warn('Lucid Origin fallback to FLUX schnell:', lucidErr?.message || lucidErr);
+    } catch (fluxErr) {
+      if (fluxErr?.status === 429) {
+        throw fluxErr;
+      }
+      if (activePrompt !== fallbackPrompt && fluxErr?.status === 400) {
+        console.warn('Retrying Cloudflare with simplified culinary prompt after 400:', fluxErr.message);
+        continue;
+      }
+      console.warn('FLUX schnell fallback to Lucid Origin:', fluxErr?.message || fluxErr);
     }
 
     try {
       return await runCloudflareModel(
         accountId,
         apiToken,
-        '@cf/black-forest-labs/flux-1-schnell',
-        { prompt: activePrompt, steps: 8, seed },
-        'cloudflare-flux-schnell'
+        '@cf/leonardo/lucid-origin',
+        { prompt: activePrompt, width: 512, height: 512, steps: 10, seed },
+        'cloudflare-lucid-origin'
       );
-    } catch (fluxErr) {
-      // Retry with the minimal clean fallback prompt only on content-filter 400 errors
-      if (activePrompt !== fallbackPrompt && fluxErr?.status === 400) {
-        console.warn('Retrying Cloudflare with simplified culinary prompt after 400:', fluxErr.message);
+    } catch (lucidErr) {
+      if (activePrompt !== fallbackPrompt && lucidErr?.status === 400) {
+        console.warn('Retrying Cloudflare with simplified culinary prompt after 400:', lucidErr.message);
         continue;
       }
-      throw fluxErr;
+      throw lucidErr;
     }
   }
   return null;
@@ -222,6 +231,7 @@ async function tryPollinationsKeyed(prompt, seed) {
 }
 
 async function tryGeminiImage(prompt, apiKey) {
+  if (process.env.ENABLE_GEMINI_IMAGE !== 'true') return null;
   const cleanKey = apiKey?.trim();
   if (!cleanKey || cleanKey === 'your_gemini_api_key_here') return null;
 
@@ -269,7 +279,7 @@ async function tryGeminiImage(prompt, apiKey) {
 
 async function tryPollinationsAnonymous(prompt, seed) {
   const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?model=flux&width=512&height=512&seed=${seed}&nologo=true`;
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
   const imageUrl = await responseToImageDataUrl(res, 'Pollinations (free)');
   return { provider: 'pollinations-free', imageUrl };
 }

@@ -432,9 +432,17 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, rawText }),
       });
-      const data = await response.json();
+      const rawBody = await response.text();
+      let data = {};
+      try {
+        data = rawBody ? JSON.parse(rawBody) : {};
+      } catch {
+        data = {};
+      }
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to parse recipe. Please check your URL or API key.');
+        throw new Error(
+          data.error || `Failed to parse recipe (HTTP ${response.status}). Please try again.`
+        );
       }
       if (!data.recipe) throw new Error('API returned successfully but no recipe data was parsed.');
 

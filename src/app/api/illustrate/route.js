@@ -7,6 +7,8 @@ import {
 
 const MAX_BATCH = 3;
 
+export const maxDuration = 60;
+
 export async function POST(request) {
   try {
     const body = await request.json();
