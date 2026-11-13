@@ -88,7 +88,7 @@ export default function ChatModal({
   // Subscribe to active chat messages
   useEffect(() => {
     if (!currentUser || !activeFriend) {
-      setMessages([]);
+      queueMicrotask(() => setMessages([]));
       return;
     }
 
@@ -351,7 +351,7 @@ export default function ChatModal({
 
                                 {msg.text && (
                                   <p className={styles.recipeNote}>
-                                    "{msg.text}"
+                                    &ldquo;{msg.text}&rdquo;
                                   </p>
                                 )}
 

@@ -38,11 +38,18 @@ export default function FriendProfileModal({
 
   useEffect(() => {
     if (!friend?.uid) return;
-    setLoading(true);
+    let active = true;
+    queueMicrotask(() => {
+      if (active) setLoading(true);
+    });
     getUserSavedRecipes(friend.uid).then((res) => {
+      if (!active) return;
       setRecipes(res);
       setLoading(false);
     });
+    return () => {
+      active = false;
+    };
   }, [friend?.uid]);
 
   const handleSaveRecipeClick = async (recipe) => {
@@ -92,7 +99,7 @@ export default function FriendProfileModal({
         {/* Recipes Section */}
         <div className={styles.recipesSection}>
           <div className={styles.sectionTitleRow}>
-            <h3>🍳 {displayName.split(' ')[0]}'s Saved Recipes</h3>
+            <h3>🍳 {displayName.split(' ')[0]}&apos;s Saved Recipes</h3>
             <span className={styles.countBadge}>{recipes.length} RECIPES</span>
           </div>
 
@@ -105,7 +112,7 @@ export default function FriendProfileModal({
             ) : recipes.length === 0 ? (
               <div className={styles.emptyState}>
                 <span className={styles.emptyIcon}>🍽️</span>
-                <p>This chef hasn't saved any public recipes yet.</p>
+                <p>This chef hasn&apos;t saved any public recipes yet.</p>
               </div>
             ) : (
               recipes.map((r) => (
