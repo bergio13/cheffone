@@ -1,7 +1,23 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import {
+  X,
+  MessageCircle,
+  TriangleAlert,
+  ArrowLeft,
+  BookOpen,
+  BookmarkPlus,
+  Check,
+  Clock,
+  Flame,
+  Users,
+  Send,
+  ChevronRight,
+} from 'lucide-react';
 import styles from './ChatModal.module.css';
+import DishIllustration, { resolveDishVisual } from './DishIllustration';
+import { formatCompactDuration } from '@/lib/recipeFormat';
 import {
   getFriends,
   getChatId,
@@ -30,7 +46,8 @@ function Avatar({ user, src, name, size = 38 }) {
   return (
     <div
       className={styles.avatarInitial}
-      style={{ width: size, height: size, fontSize: size * 0.45 }}
+      style={{ width: size, height: size, fontSize: size * 0.44 }}
+      aria-hidden="true"
     >
       {letter}
     </div>
@@ -56,16 +73,24 @@ export default function ChatModal({
   const [permissionError, setPermissionError] = useState(false);
   const messagesEndRef = useRef(null);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   // Load friends list
   useEffect(() => {
     if (!currentUser) return;
     getFriends(currentUser.uid).then((fList) => {
       setFriends(fList);
-      if (!activeFriend && fList.length > 0 && !initialFriend) {
-        setActiveFriend(fList[0]);
+      if (!initialFriend && fList.length > 0) {
+        setActiveFriend((prev) => prev || fList[0]);
       }
     });
-  }, [currentUser]);
+  }, [currentUser, initialFriend]);
 
   // Subscribe to user's chat conversations overview
   useEffect(() => {
@@ -151,27 +176,15 @@ export default function ChatModal({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const getFriendInfoForChat = (chat) => {
-    const otherUid = chat.participants?.find((uid) => uid !== currentUser.uid);
-    const fromFriendList = friends.find((f) => f.uid === otherUid);
-    if (fromFriendList) return fromFriendList;
-
-    const pInfo = chat.participantInfo?.[otherUid] || {};
-    return {
-      uid: otherUid,
-      displayName: pInfo.displayName || 'Chef Friend',
-      photoURL: pInfo.photoURL || '',
-      email: pInfo.email || '',
-    };
-  };
-
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeBtn} onClick={onClose} title="Close Chat">
-          ✕
-        </button>
-
+      <div
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Kitchen Chat"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.chatContainer}>
           {/* Sidebar Conversations / Friends */}
           <div
@@ -180,12 +193,29 @@ export default function ChatModal({
             }`}
           >
             <div className={styles.sidebarHeader}>
-              <h3>💬 Kitchen Chat</h3>
+              <div className={styles.sidebarTitleGroup}>
+                <span className={styles.sidebarIconPill} aria-hidden="true">
+                  <MessageCircle size={15} strokeWidth={2.5} />
+                </span>
+                <h3>Kitchen Chat</h3>
+              </div>
+              <button
+                type="button"
+                className={`${styles.closeBtn} ${styles.mobileOnlyClose}`}
+                onClick={onClose}
+                aria-label="Close chat"
+                title="Close Chat"
+              >
+                <X size={18} strokeWidth={2.5} aria-hidden="true" />
+              </button>
             </div>
 
             {permissionError && (
-              <div className={styles.permissionWarning}>
-                ⚠️ Firestore Rules setup needed for chats collection. Check <code>firestore.rules</code>.
+              <div className={styles.permissionWarning} role="alert">
+                <TriangleAlert size={15} strokeWidth={2.3} aria-hidden="true" />
+                <span>
+                  Firestore Rules setup needed for chats collection. Check <code>firestore.rules</code>.
+                </span>
               </div>
             )}
 
@@ -203,7 +233,8 @@ export default function ChatModal({
                   const isSelected = activeFriend?.uid === friend.uid;
 
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={friend.uid}
                       className={`${styles.friendItem} ${
                         isSelected ? styles.friendItemActive : ''
@@ -239,7 +270,7 @@ export default function ChatModal({
                           </span>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   );
                 })
               )}
@@ -256,33 +287,57 @@ export default function ChatModal({
               <>
                 {/* Chat Header */}
                 <div className={styles.chatHeader}>
-                  <button
-                    className={styles.backBtnMobile}
-                    onClick={() => setMobileView('list')}
-                    title="Back to friends"
-                  >
-                    ←
-                  </button>
-                  <div
-                    className={styles.headerProfileClickable}
-                    onClick={() => {
-                      if (onOpenProfile) onOpenProfile(activeFriend);
-                    }}
-                    title="Click to view chef profile & saved recipes"
-                  >
-                    <Avatar user={activeFriend} size={36} />
-                    <div className={styles.headerTitleGroup}>
-                      <h4>{activeFriend.displayName || activeFriend.email?.split('@')[0] || 'Chef'}</h4>
-                      <span className={styles.subBadge}>View Profile &amp; Recipes 📖</span>
-                    </div>
+                  <div className={styles.chatHeaderLeft}>
+                    <button
+                      type="button"
+                      className={styles.backBtnMobile}
+                      onClick={() => setMobileView('list')}
+                      aria-label="Back to friends"
+                      title="Back to friends"
+                    >
+                      <ArrowLeft size={16} strokeWidth={2.5} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.headerProfileClickable}
+                      onClick={() => {
+                        if (onOpenProfile) onOpenProfile(activeFriend);
+                      }}
+                      title="View chef profile & saved recipes"
+                    >
+                      <Avatar user={activeFriend} size={36} />
+                      <div className={styles.headerTitleGroup}>
+                        <h4>
+                          {activeFriend.displayName ||
+                            activeFriend.email?.split('@')[0] ||
+                            'Chef'}
+                        </h4>
+                        <span className={styles.subBadge}>
+                          <span>View Profile</span>
+                          <ChevronRight size={12} strokeWidth={2.5} aria-hidden="true" />
+                        </span>
+                      </div>
+                    </button>
                   </div>
+
+                  <button
+                    type="button"
+                    className={styles.closeBtn}
+                    onClick={onClose}
+                    aria-label="Close chat"
+                    title="Close Chat"
+                  >
+                    <X size={18} strokeWidth={2.5} aria-hidden="true" />
+                  </button>
                 </div>
 
                 {/* Messages Stream */}
                 <div className={styles.messagesList}>
                   {messages.length === 0 ? (
                     <div className={styles.emptyMessages}>
-                      <span>💬</span>
+                      <span className={styles.emptyGlyph} aria-hidden="true">
+                        <MessageCircle size={36} strokeWidth={2} />
+                      </span>
                       <p>
                         Say hi to{' '}
                         <strong>
@@ -291,12 +346,15 @@ export default function ChatModal({
                         !
                       </p>
                       <p className={styles.subtext}>
-                        Send text messages or share recipes directly here.
+                        Send messages or share recipes from your board.
                       </p>
                     </div>
                   ) : (
                     messages.map((msg) => {
                       const isMe = msg.senderUid === currentUser.uid;
+                      const isRecipeMsg = msg.type === 'recipe' && msg.recipe;
+                      const visual = isRecipeMsg ? resolveDishVisual(msg.recipe) : null;
+                      const isAlreadySaved = savedRecipes.has(msg.id);
 
                       return (
                         <div
@@ -320,33 +378,53 @@ export default function ChatModal({
                               </span>
                             )}
 
-                            {msg.type === 'recipe' && msg.recipe ? (
+                            {isRecipeMsg ? (
                               <div className={styles.recipeCardBubble}>
-                                <div className={styles.recipeBubbleHeader}>
-                                  <span className={styles.recipeTag}>
-                                    🍳 RECIPE SHARED
-                                  </span>
-                                  {msg.recipe.category && (
-                                    <span className={styles.categoryBadge}>
-                                      {msg.recipe.category}
-                                    </span>
-                                  )}
-                                </div>
+                                <div className={styles.recipeBubbleTop}>
+                                  <div
+                                    className={styles.recipeBubbleThumb}
+                                    style={{ backgroundColor: visual.backdrop }}
+                                  >
+                                    <DishIllustration recipe={msg.recipe} />
+                                  </div>
 
-                                <h5 className={styles.recipeTitle}>
-                                  {msg.recipe.title}
-                                </h5>
+                                  <div className={styles.recipeBubbleMeta}>
+                                    <div className={styles.recipeBubbleHeader}>
+                                      <span className={styles.recipeTag}>
+                                        SHARED RECIPE
+                                      </span>
+                                      {msg.recipe.category && (
+                                        <span className={styles.categoryBadge}>
+                                          {msg.recipe.category}
+                                        </span>
+                                      )}
+                                    </div>
 
-                                <div className={styles.recipeStats}>
-                                  {msg.recipe.prepTime && (
-                                    <span>⏱️ {msg.recipe.prepTime}</span>
-                                  )}
-                                  {msg.recipe.difficulty && (
-                                    <span>🔥 {msg.recipe.difficulty}</span>
-                                  )}
-                                  {msg.recipe.servings && (
-                                    <span>👥 {msg.recipe.servings} serv</span>
-                                  )}
+                                    <h5 className={styles.recipeTitle}>
+                                      {msg.recipe.title}
+                                    </h5>
+
+                                    <div className={styles.recipeStats}>
+                                      {msg.recipe.prepTime && (
+                                        <span className={styles.statItem}>
+                                          <Clock size={12} strokeWidth={2.3} aria-hidden="true" />
+                                          <span>{formatCompactDuration(msg.recipe.prepTime)}</span>
+                                        </span>
+                                      )}
+                                      {msg.recipe.difficulty && (
+                                        <span className={styles.statItem}>
+                                          <Flame size={12} strokeWidth={2.3} aria-hidden="true" />
+                                          <span>{msg.recipe.difficulty}</span>
+                                        </span>
+                                      )}
+                                      {msg.recipe.servings && (
+                                        <span className={styles.statItem}>
+                                          <Users size={12} strokeWidth={2.3} aria-hidden="true" />
+                                          <span>{msg.recipe.servings} serv</span>
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
 
                                 {msg.text && (
@@ -358,18 +436,19 @@ export default function ChatModal({
                                 <div className={styles.recipeActions}>
                                   {onSelectRecipe && (
                                     <button
+                                      type="button"
                                       className={styles.viewRecipeBtn}
                                       onClick={() => onSelectRecipe(msg.recipe)}
                                     >
-                                      📖 View Recipe
+                                      <BookOpen size={14} strokeWidth={2.3} aria-hidden="true" />
+                                      <span>View</span>
                                     </button>
                                   )}
                                   {onSaveRecipe && !isMe && (
                                     <button
+                                      type="button"
                                       className={`${styles.saveRecipeBtn} ${
-                                        savedRecipes.has(msg.id)
-                                          ? styles.savedBtn
-                                          : ''
+                                        isAlreadySaved ? styles.savedBtn : ''
                                       }`}
                                       onClick={() =>
                                         handleSaveRecipeClick(
@@ -377,11 +456,19 @@ export default function ChatModal({
                                           msg.recipe
                                         )
                                       }
-                                      disabled={savedRecipes.has(msg.id)}
+                                      disabled={isAlreadySaved}
                                     >
-                                      {savedRecipes.has(msg.id)
-                                        ? '✓ Saved'
-                                        : '🍳 Save'}
+                                      {isAlreadySaved ? (
+                                        <>
+                                          <Check size={14} strokeWidth={2.6} aria-hidden="true" />
+                                          <span>Saved</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <BookmarkPlus size={14} strokeWidth={2.3} aria-hidden="true" />
+                                          <span>Save</span>
+                                        </>
+                                      )}
                                     </button>
                                   )}
                                 </div>
@@ -418,6 +505,7 @@ export default function ChatModal({
                     placeholder={`Message ${
                       activeFriend.displayName || 'friend'
                     }...`}
+                    aria-label={`Message ${activeFriend.displayName || 'friend'}`}
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                   />
@@ -426,15 +514,31 @@ export default function ChatModal({
                     className={styles.sendButton}
                     disabled={!inputText.trim() || sending}
                   >
-                    {sending ? '...' : '📤 Send'}
+                    <Send size={15} strokeWidth={2.4} aria-hidden="true" />
+                    <span>{sending ? 'Sending...' : 'Send'}</span>
                   </button>
                 </form>
               </>
             ) : (
-              <div className={styles.noActiveChat}>
-                <span>💬</span>
-                <p>Select a friend to start chatting</p>
-              </div>
+              <>
+                <div className={styles.emptyThreadTopBar}>
+                  <button
+                    type="button"
+                    className={styles.closeBtn}
+                    onClick={onClose}
+                    aria-label="Close chat"
+                    title="Close Chat"
+                  >
+                    <X size={18} strokeWidth={2.5} aria-hidden="true" />
+                  </button>
+                </div>
+                <div className={styles.noActiveChat}>
+                  <span className={styles.noActiveIcon} aria-hidden="true">
+                    <MessageCircle size={40} strokeWidth={2} />
+                  </span>
+                  <p>Select a friend to start chatting</p>
+                </div>
+              </>
             )}
           </div>
         </div>

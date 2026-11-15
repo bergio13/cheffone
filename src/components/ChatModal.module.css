@@ -2,61 +2,72 @@
 
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  z-index: 9999;
+  inset: 0;
+  background: rgba(30, 29, 26, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 3100;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  animation: fadeIn 0.2s ease-out;
+  animation: fadeIn var(--transition-fast);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal {
-  background: var(--bg-card, #1a1a24);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  border-radius: 20px;
+  background: var(--bg-primary);
+  border: 2px solid var(--text-primary);
+  border-radius: 24px;
   width: 100%;
   max-width: 900px;
-  height: 80vh;
+  height: 82dvh;
   max-height: 700px;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 6px 0 var(--text-primary);
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popIn {
+  from { transform: translateY(10px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 .closeBtn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: none;
-  color: #fff;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
   border-radius: 50%;
-  cursor: pointer;
-  z-index: 10;
-  display: flex;
+  border: 2px solid var(--text-primary);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--text-primary);
+  transition: transform var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
 }
 
 .closeBtn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: rotate(90deg);
+  background: var(--accent-primary);
+  color: #ffffff;
+}
+
+.closeBtn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.mobileOnlyClose {
+  display: none;
 }
 
 .chatContainer {
@@ -68,108 +79,181 @@
 
 /* Sidebar */
 .sidebar {
-  width: 280px;
-  background: rgba(0, 0, 0, 0.2);
-  border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  width: 290px;
+  background: var(--bg-secondary);
+  border-right: 2px solid var(--text-primary);
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
 .sidebarHeader {
-  padding: 1.25rem;
-  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  padding: 14px 16px;
+  border-bottom: 2px solid var(--text-primary);
+  background: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 64px;
+  position: relative;
 }
 
-.sidebarHeader h3 {
+.sidebarHeader::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-amber));
+}
+
+.sidebarTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.sidebarIconPill {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #FFF0ED;
+  color: var(--accent-primary);
+  border: 1.5px solid var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:global(html[data-theme='dark']) .sidebarIconPill {
+  background: var(--accent-light);
+}
+
+.sidebarTitleGroup h3 {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
 .permissionWarning {
-  background: rgba(255, 71, 87, 0.15);
-  border: 1px solid rgba(255, 71, 87, 0.4);
-  color: #ff4757;
-  padding: 0.6rem 0.8rem;
-  font-size: 0.78rem;
-  margin: 0.5rem;
-  border-radius: 8px;
-  line-height: 1.3;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--danger-bg);
+  border: 2px solid var(--text-primary);
+  color: var(--danger-text);
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 10px;
+  border-radius: 12px;
+  line-height: 1.35;
+}
+
+.permissionWarning svg {
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .permissionWarning code {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.1rem 0.3rem;
+  background: rgba(30, 29, 26, 0.08);
+  padding: 1px 4px;
   border-radius: 4px;
 }
 
 .friendsList {
   flex: 1;
   overflow-y: auto;
-  padding: 0.5rem;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .emptySidebar {
-  padding: 2rem 1rem;
+  padding: 32px 16px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.emptySidebar p {
+  margin: 0;
 }
 
 .subtext {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 0.25rem;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
 }
 
 .friendItem {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 2px solid transparent;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 12px;
+  gap: 11px;
+  padding: 10px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: background 0.15s ease;
-  margin-bottom: 0.25rem;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .friendItem:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.65);
+  border-color: var(--bg-tertiary);
+}
+
+:global(html[data-theme='dark']) .friendItem:hover {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .friendItemActive {
-  background: rgba(255, 107, 0, 0.15) !important;
-  border: 1px solid rgba(255, 107, 0, 0.3);
+  background: var(--card-bg) !important;
+  border: 2px solid var(--text-primary) !important;
+  box-shadow: 0 2px 0 var(--text-primary);
 }
 
 .avatarWrapper {
   position: relative;
+  flex-shrink: 0;
 }
 
 .avatar {
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--text-primary);
+  background: var(--card-bg);
+  display: block;
 }
 
 .avatarInitial {
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff6b00, #ff8800);
-  color: #fff;
+  background: var(--accent-primary);
+  color: #ffffff;
+  border: 2px solid var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
+  font-family: var(--font-sans);
+  font-weight: 800;
 }
 
 .unreadBadgeDot {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 10px;
-  height: 10px;
+  top: -1px;
+  right: -1px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  background: #ff4757;
-  border: 2px solid #1a1a24;
+  background: var(--accent-primary);
+  border: 2px solid var(--card-bg);
 }
 
 .friendMeta {
@@ -181,29 +265,33 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 6px;
 }
 
 .friendName {
-  font-weight: 600;
-  font-size: 0.92rem;
-  color: #fff;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .lastTime {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 .friendBottomLine {
-  margin-top: 0.2rem;
+  margin-top: 2px;
 }
 
 .lastMessageSnippet {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 12.5px;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -211,77 +299,130 @@
 }
 
 .unreadSnippet {
-  color: #ff6b00;
-  font-weight: 600;
+  color: var(--accent-primary);
+  font-weight: 700;
 }
 
 /* Main Chat Area */
 .mainChat {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
 }
 
 .chatHeader {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  padding: 12px 16px;
+  min-height: 64px;
+  border-bottom: 2px solid var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: rgba(0, 0, 0, 0.2);
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--card-bg);
+  position: relative;
+}
+
+.chatHeader::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-amber));
+}
+
+.chatHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
 }
 
 .headerProfileClickable {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 10px;
+  background: transparent;
+  border: 1.5px solid transparent;
   cursor: pointer;
-  padding: 0.2rem 0.5rem;
-  border-radius: 8px;
-  transition: background 0.15s ease;
+  padding: 4px 8px 4px 4px;
+  border-radius: 12px;
+  text-align: left;
+  min-width: 0;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
 .headerProfileClickable:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-secondary);
+  border-color: var(--text-primary);
+}
+
+.headerTitleGroup {
+  min-width: 0;
 }
 
 .headerTitleGroup h4 {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 15.5px;
+  font-weight: 800;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .subBadge {
-  font-size: 0.75rem;
-  color: #ff6b00;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--accent-primary);
+  font-weight: 700;
 }
 
 .messagesList {
   flex: 1;
   overflow-y: auto;
-  padding: 1.25rem;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 14px;
+  background: var(--bg-primary);
 }
 
 .emptyMessages {
   margin: auto;
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
-  span {
-    font-size: 2.5rem;
-  }
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 2px dashed var(--bg-tertiary);
+  border-radius: 18px;
+  padding: 28px 22px;
+  max-width: 340px;
+}
+
+.emptyMessages p {
+  margin: 4px 0 0;
+  color: var(--text-primary);
+  font-size: 14.5px;
+}
+
+.emptyGlyph {
+  display: inline-flex;
+  color: var(--accent-primary);
+  margin-bottom: 6px;
 }
 
 .messageRow {
   display: flex;
   align-items: flex-end;
-  gap: 0.6rem;
-  max-width: 80%;
+  gap: 8px;
+  max-width: 82%;
 }
 
 .messageRowMe {
@@ -296,214 +437,325 @@
 .messageBubbleContainer {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
+  min-width: 0;
+}
+
+.messageRowMe .messageBubbleContainer {
+  align-items: flex-end;
 }
 
 .senderLabel {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin-left: 0.2rem;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-left: 4px;
 }
 
 .textBubble {
-  padding: 0.75rem 1rem;
+  padding: 10px 14px;
   border-radius: 16px;
-  font-size: 0.92rem;
-  line-height: 1.4;
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.45;
   word-break: break-word;
+  border: 2px solid var(--text-primary);
+  box-shadow: 0 2px 0 var(--text-primary);
 }
 
 .bubbleMe {
-  background: linear-gradient(135deg, #ff6b00, #ff8800);
-  color: #fff;
-  border-bottom-right-radius: 4px;
+  background: var(--accent-primary);
+  color: #ffffff;
+  border-bottom-right-radius: 5px;
 }
 
 .bubbleOther {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-bottom-left-radius: 4px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-bottom-left-radius: 5px;
 }
 
 .messageTime {
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.35);
-  align-self: flex-end;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0 2px;
 }
 
 /* Recipe Card inside Chat */
 .recipeCardBubble {
-  background: rgba(26, 26, 36, 0.95);
-  border: 1px solid rgba(255, 107, 0, 0.4);
+  background: var(--card-bg);
+  border: 2px solid var(--text-primary);
   border-radius: 16px;
-  padding: 1rem;
-  width: 280px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  width: 300px;
+  max-width: 100%;
+  box-shadow: 0 3px 0 var(--text-primary);
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 10px;
+}
+
+.recipeBubbleTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.recipeBubbleThumb {
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  border: 1.5px solid var(--text-primary);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recipeBubbleThumb img,
+.recipeBubbleThumb svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.recipeBubbleMeta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .recipeBubbleHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 6px;
 }
 
 .recipeTag {
-  font-size: 0.7rem;
+  font-size: 10px;
   font-weight: 800;
-  color: #ff6b00;
+  color: var(--accent-primary);
   letter-spacing: 0.05em;
 }
 
 .categoryBadge {
-  font-size: 0.7rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.15rem 0.4rem;
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--text-primary);
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: var(--text-primary);
 }
 
 .recipeTitle {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
-  line-height: 1.3;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .recipeStats {
   display: flex;
-  gap: 0.75rem;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.7);
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.statItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .recipeNote {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 12.5px;
   font-style: italic;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.4rem 0.6rem;
-  border-radius: 8px;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--bg-tertiary);
+  padding: 7px 10px;
+  border-radius: 10px;
+  line-height: 1.4;
 }
 
 .recipeActions {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+  gap: 8px;
 }
 
 .viewRecipeBtn,
 .saveRecipeBtn {
   flex: 1;
-  padding: 0.5rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: 8px;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 10px;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 2px solid var(--text-primary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  box-shadow: 0 2px 0 var(--text-primary);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
 }
 
 .viewRecipeBtn {
-  background: #ff6b00;
-  color: #fff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .viewRecipeBtn:hover {
-  background: #ff8800;
+  background: var(--card-bg);
 }
 
 .saveRecipeBtn {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--accent-primary);
+  color: #ffffff;
 }
 
-.saveRecipeBtn:hover {
-  background: rgba(255, 255, 255, 0.2);
+.saveRecipeBtn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.viewRecipeBtn:active,
+.saveRecipeBtn:not(:disabled):active {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .savedBtn {
-  background: rgba(46, 213, 115, 0.2) !important;
-  color: #2ed573 !important;
-  border: 1px solid rgba(46, 213, 115, 0.4);
+  background: var(--success) !important;
+  color: #ffffff !important;
+  box-shadow: none;
+  cursor: default;
 }
 
 /* Input Bar */
 .inputContainer {
-  padding: 1rem;
-  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  padding: 12px 14px;
+  border-top: 2px solid var(--text-primary);
   display: flex;
-  gap: 0.6rem;
-  background: rgba(0, 0, 0, 0.2);
+  gap: 8px;
+  background: var(--card-bg);
 }
 
 .textInput {
   flex: 1;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  color: #fff;
-  font-size: 0.92rem;
+  min-width: 0;
+  background: var(--bg-secondary);
+  border: 2px solid var(--text-primary);
+  border-radius: 14px;
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
   outline: none;
-  transition: border-color 0.2s;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.textInput::placeholder {
+  color: var(--text-secondary);
 }
 
 .textInput:focus {
-  border-color: #ff6b00;
+  background: var(--card-bg);
+  box-shadow: 0 0 0 3px rgba(217, 56, 30, 0.14);
 }
 
 .sendButton {
-  background: #ff6b00;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  padding: 0 1.25rem;
-  font-weight: 700;
-  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--accent-primary);
+  color: #ffffff;
+  border: 2px solid var(--text-primary);
+  border-radius: 14px;
+  padding: 0 16px;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 14px;
   cursor: pointer;
-  transition: background 0.2s;
+  flex-shrink: 0;
+  box-shadow: 0 2px 0 var(--text-primary);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), opacity var(--transition-fast);
 }
 
 .sendButton:hover:not(:disabled) {
-  background: #ff8800;
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 var(--text-primary);
+}
+
+.sendButton:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .sendButton:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
+  box-shadow: none;
+}
+
+.emptyThreadTopBar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 14px 16px 0;
 }
 
 .noActiveChat {
   margin: auto;
   text-align: center;
-  color: rgba(255, 255, 255, 0.5);
-  span {
-    font-size: 3rem;
-  }
+  color: var(--text-secondary);
+  padding: 24px;
+  font-weight: 600;
+}
+
+.noActiveIcon {
+  display: inline-flex;
+  color: var(--accent-primary);
+  margin-bottom: 8px;
 }
 
 .backBtnMobile {
   display: none;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: #fff;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  background: var(--accent-amber);
+  border: 2px solid var(--text-primary);
+  color: #1E1D1A;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
   cursor: pointer;
-  margin-right: 0.25rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 0 var(--text-primary);
 }
 
-.backBtnMobile:hover {
-  background: rgba(255, 255, 255, 0.2);
+.backBtnMobile:active {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 @media (max-width: 640px) {
@@ -516,6 +768,11 @@
     max-height: 100dvh;
     border-radius: 0;
     border: none;
+    box-shadow: none;
+  }
+
+  .mobileOnlyClose {
+    display: inline-flex;
   }
 
   .sidebarHiddenMobile {
@@ -532,7 +789,7 @@
   }
 
   .sidebarHeader {
-    padding: calc(1rem + env(safe-area-inset-top, 0px)) 4rem 1rem 1.25rem;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
   }
 
   .mainChat {
@@ -540,34 +797,29 @@
   }
 
   .chatHeader {
-    padding: calc(0.85rem + env(safe-area-inset-top, 0px)) 4rem 0.85rem 0.9rem;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
   }
 
   .friendsList {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   }
 
   .friendItem {
-    min-height: 56px;
-  }
-
-  .friendMeta {
-    display: block !important;
+    min-height: 58px;
   }
 
   .backBtnMobile {
-    display: flex;
-    width: 44px;
-    height: 44px;
-    flex-shrink: 0;
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
   }
 
   .messagesList {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    padding: 1rem;
+    padding: 14px;
   }
 
   .messageRow {
@@ -576,33 +828,24 @@
 
   .recipeCardBubble {
     width: 100%;
-    max-width: 280px;
+    max-width: 300px;
   }
 
   .viewRecipeBtn,
   .saveRecipeBtn {
-    min-height: 44px;
+    min-height: 42px;
   }
 
   .inputContainer {
-    padding: 0.75rem 0.85rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
   }
 
   .textInput {
-    font-size: 16px;
     min-height: 44px;
   }
 
   .sendButton {
     min-height: 44px;
-    min-width: 64px;
-  }
-
-  .closeBtn {
-    top: calc(0.65rem + env(safe-area-inset-top, 0px));
-    right: 0.75rem;
-    width: 44px;
-    height: 44px;
-    font-size: 1.05rem;
+    padding: 0 14px;
   }
 }
