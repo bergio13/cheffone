@@ -1,14 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import { Check, TriangleAlert } from 'lucide-react';
 import styles from '@/app/page.module.css';
+import { scaleNutritionValue } from '@/lib/recipeFormat';
 
-export default function NutritionPanel({ nutrition }) {
+export default function NutritionPanel({ nutrition, servings = 2, adjustedServings }) {
+  const [viewScope, setViewScope] = useState('serving'); // 'serving' | 'batch'
   const n = nutrition || {};
+  const batchCount = Number(adjustedServings) > 0 ? Number(adjustedServings) : Number(servings) || 2;
+  const multiplier = viewScope === 'batch' ? batchCount : 1;
+
   const cards = [
     { key: 'calories', label: 'Calories', cls: styles.calCard, color: 'var(--accent-primary)', always: true },
     { key: 'protein', label: 'Protein', cls: styles.protCard, color: 'var(--success)', always: true },
-    { key: 'carbs', label: 'Carbs', cls: styles.carbCard, color: 'var(--accent-yellow)', always: true },
+    { key: 'carbs', label: 'Carbs', cls: styles.carbCard, color: 'var(--accent-amber)', always: true },
     { key: 'fat', label: 'Fat', cls: styles.fatCard, color: 'var(--text-primary)', always: true },
     { key: 'fiber', label: 'Fiber', cls: styles.fibCard, color: '#7c3aed' },
     { key: 'sodium', label: 'Sodium', cls: styles.fatCard, color: '#f59e0b' },
@@ -44,9 +50,32 @@ export default function NutritionPanel({ nutrition }) {
         </div>
       )}
 
-      <div className={styles.nutritionHeader}>
-        <h4 className={styles.sectionHeading}>Nutrition Facts</h4>
-        <p className={styles.sectionSubtitle}>Estimated values per single serving size.</p>
+      <div className={styles.nutritionTopRow}>
+        <div className={styles.nutritionHeader}>
+          <h4 className={styles.sectionHeading}>Nutrition Facts</h4>
+          <p className={styles.sectionSubtitle}>
+            {viewScope === 'serving'
+              ? `Per 1 serving (batch set to ${batchCount})`
+              : `Total batch for ${batchCount} serving${batchCount === 1 ? '' : 's'}`}
+          </p>
+        </div>
+
+        <div className={styles.nutritionScopeToggle} role="group" aria-label="Nutrition serving scope">
+          <button
+            type="button"
+            className={`${styles.nutritionScopeBtn} ${viewScope === 'serving' ? styles.nutritionScopeBtnActive : ''}`}
+            onClick={() => setViewScope('serving')}
+          >
+            Per Serving
+          </button>
+          <button
+            type="button"
+            className={`${styles.nutritionScopeBtn} ${viewScope === 'batch' ? styles.nutritionScopeBtnActive : ''}`}
+            onClick={() => setViewScope('batch')}
+          >
+            Total Batch ({batchCount}&times;)
+          </button>
+        </div>
       </div>
 
       <div className={styles.nutritionGrid}>
@@ -54,7 +83,7 @@ export default function NutritionPanel({ nutrition }) {
           .filter((c) => c.always || n[c.key])
           .map((c) => (
             <div key={c.key} className={`${styles.nutritionCard} ${c.cls}`}>
-              <span className={styles.nutritionVal}>{n[c.key] || '—'}</span>
+              <span className={styles.nutritionVal}>{scaleNutritionValue(n[c.key], multiplier)}</span>
               <span className={styles.nutritionLabel}>{c.label}</span>
               <div className={styles.macroIndicator} style={{ background: c.color }} />
             </div>

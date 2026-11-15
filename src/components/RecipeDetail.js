@@ -1,11 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import {
   ArrowLeft,
   Clock,
   Flame,
   Gauge,
-  Film,
   Minus,
   Plus,
   Share2,
@@ -14,9 +14,18 @@ import {
   Utensils,
   Apple,
   ChefHat,
+  ChevronDown,
+  Check,
+  ExternalLink,
 } from 'lucide-react';
 import styles from '@/app/page.module.css';
 import NutritionPanel from './NutritionPanel';
+import DishIllustration, { resolveDishVisual } from './DishIllustration';
+import {
+  formatCompactDuration,
+  formatIngredientUnit,
+  formatScaledQuantity,
+} from '@/lib/recipeFormat';
 
 export default function RecipeDetail({
   recipe,
@@ -28,17 +37,15 @@ export default function RecipeDetail({
   onToggleIngredient,
   activeTab,
   setActiveTab,
-  playVideoId,
   setPlayVideoId,
   onBack,
   onSaveShared,
   onShare,
 }) {
-  const scaleQuantity = (quantity, originalServings) => {
-    if (quantity === null || quantity === undefined) return '';
-    const ratio = adjustedServings / (originalServings || 2);
-    return Math.round(quantity * ratio * 100) / 100;
-  };
+  const [isVideoExpanded, setIsVideoExpanded] = useState(false);
+  const [isIngredientsOpen, setIsIngredientsOpen] = useState(true);
+  const [isDirectionsOpen, setIsDirectionsOpen] = useState(true);
+  const [activeStep, setActiveStep] = useState(0);
 
   if (!recipe) {
     return (
@@ -51,223 +58,369 @@ export default function RecipeDetail({
   }
 
   const friendName = previewFromFriend?.displayName?.split(' ')[0] || 'Chef';
+  const dishVisual = resolveDishVisual(recipe);
+  const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+  const instructions = Array.isArray(recipe.instructions) ? recipe.instructions : [];
+  const checkedCount = ingredients.reduce((acc, _, idx) => acc + (checkedIngredients[idx] ? 1 : 0), 0);
+
+  const hasEmbeddableVideo = Boolean(recipe.videoUrl || recipe.iframeHtml);
+  const safeSourceUrl =
+    typeof recipe.sourceUrl === 'string' && /^https?:\/\//i.test(recipe.sourceUrl.trim())
+      ? recipe.sourceUrl.trim()
+      : '';
+  const hasAnyVideoSource = hasEmbeddableVideo || Boolean(safeSourceUrl);
+  const videoTitle = hasEmbeddableVideo
+    ? 'Watch Recipe Video'
+    : safeSourceUrl
+      ? 'Original Recipe Video'
+      : 'No Video Available';
+  const videoSubtitle = hasEmbeddableVideo
+    ? `${recipe.videoDuration ? `${recipe.videoDuration} • ` : ''}Tap to expand player`
+    : safeSourceUrl
+      ? 'Tap to open source link'
+      : 'Parsed from text caption';
+
+  const handleToggleVideo = () => {
+    if (!hasAnyVideoSource) return;
+    setIsVideoExpanded((prev) => {
+      const next = !prev;
+      if (next && recipe.iframeHtml && setPlayVideoId) {
+        setPlayVideoId(recipe.id);
+      }
+      return next;
+    });
+  };
 
   return (
     <div className={styles.recipeDetail}>
-      <div className={styles.recipeHeaderBlock}>
+      <div className={styles.detailActionBar}>
         <button
-          className={previewFromFriend ? styles.backToProfileBtnDesktop : styles.mobileBackBtn}
+          type="button"
+          className={`${styles.actionBoardBtn} ${previewFromFriend ? styles.actionBoardBtnAlways : ''}`}
           onClick={onBack}
-          title={previewFromFriend ? 'Back to friend profile' : 'Back to board'}
+          title={previewFromFriend ? `Back to ${friendName}'s profile` : 'Back to board'}
         >
-          <ArrowLeft size={16} />
-          {previewFromFriend ? `Back to ${friendName}'s Profile` : 'Back to Board'}
+          <ArrowLeft size={15} />
+          <span>{previewFromFriend ? `${friendName}'s Profile` : 'Board'}</span>
         </button>
+
+        {recipe.isPreviewOnly && !isSaved ? (
+          <button
+            type="button"
+            className={styles.actionSaveBtn}
+            onClick={onSaveShared}
+            title="Save this shared recipe to your collection"
+          >
+            <BookmarkPlus size={15} />
+            <span>Save</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={styles.actionShareBtn}
+            onClick={onShare}
+            title="Share recipe with friends"
+          >
+            <Share2 size={15} />
+            <span>Share</span>
+          </button>
+        )}
+      </div>
+
+      <div className={styles.recipeHeroRow}>
         <div className={styles.titleArea}>
-          <div className={styles.titleBadgeContainer}>
-            <span className={styles.categoryBadge}>{recipe.category || 'Recipe'}</span>
-            {recipe.difficulty && (
-              <span className={`${styles.categoryBadge} ${styles.difficultyBadge}`}>{recipe.difficulty}</span>
-            )}
-          </div>
+          <span className={styles.categoryBadge}>{recipe.category || 'Recipe'}</span>
           <h2 className={styles.recipeTitle}>{recipe.title}</h2>
         </div>
 
-        <div className={styles.headerControls}>
-          <div className={styles.servingAdjuster}>
-            <span className={styles.servingLabel}>SIZE:</span>
-            <button
-              className={styles.adjustBtn}
-              onClick={() => setAdjustedServings(Math.max(1, adjustedServings - 1))}
-              aria-label="Fewer servings"
-            >
-              <Minus size={16} />
-            </button>
-            <span className={styles.servingCount} aria-live="polite">{adjustedServings}</span>
-            <button
-              className={styles.adjustBtn}
-              onClick={() => setAdjustedServings(adjustedServings + 1)}
-              aria-label="More servings"
-            >
-              <Plus size={16} />
-            </button>
-          </div>
-          {recipe.isPreviewOnly && !isSaved ? (
-            <button
-              className={styles.savePreviewBtn}
-              onClick={onSaveShared}
-              title="Save this shared recipe to your collection"
-            >
-              <BookmarkPlus size={16} /> Save to My Collection
-            </button>
-          ) : (
-            <button className={styles.detailShareBtn} onClick={onShare} title="Share recipe with friends">
-              <Share2 size={16} /> Share with Friends
-            </button>
-          )}
+        <div
+          className={styles.recipeHeroThumb}
+          style={{ backgroundColor: dishVisual.backdrop }}
+        >
+          <DishIllustration recipe={recipe} />
         </div>
       </div>
 
-      <div className={styles.metadataGrid}>
-        <div className={styles.metaItem}>
-          <span className={styles.metaIcon}><Clock size={20} /></span>
-          <div className={styles.metaText}>
-            <span className={styles.metaLabel}>Prep Time</span>
-            <span className={styles.metaValue}>{recipe.prepTime || 'N/A'}</span>
-          </div>
+      <div className={styles.metadataStrip}>
+        <div className={styles.metaStripItem}>
+          <span className={styles.metaStripTop}>
+            <Clock size={13} className={styles.metaStripIcon} />
+            <span className={styles.metaLabel}>PREP</span>
+          </span>
+          <span className={styles.metaValue}>{formatCompactDuration(recipe.prepTime)}</span>
         </div>
-        <div className={styles.metaItem}>
-          <span className={styles.metaIcon}><Flame size={20} /></span>
-          <div className={styles.metaText}>
-            <span className={styles.metaLabel}>Cook Time</span>
-            <span className={styles.metaValue}>{recipe.cookTime || 'N/A'}</span>
-          </div>
+        <div className={styles.metaStripItem}>
+          <span className={styles.metaStripTop}>
+            <Flame size={13} className={styles.metaStripIcon} />
+            <span className={styles.metaLabel}>COOK</span>
+          </span>
+          <span className={styles.metaValue}>{formatCompactDuration(recipe.cookTime)}</span>
         </div>
-        <div className={styles.metaItem}>
-          <span className={styles.metaIcon}><Gauge size={20} /></span>
-          <div className={styles.metaText}>
-            <span className={styles.metaLabel}>Difficulty</span>
-            <span className={styles.metaValue}>{recipe.difficulty || 'Easy'}</span>
-          </div>
+        <div className={styles.metaStripItem}>
+          <span className={styles.metaStripTop}>
+            <Gauge size={13} className={styles.metaStripIcon} />
+            <span className={styles.metaLabel}>LEVEL</span>
+          </span>
+          <span className={styles.metaValue}>{recipe.difficulty || 'Easy'}</span>
         </div>
-        {recipe.sourceUrl && (
-          <div className={styles.metaItem}>
-            <span className={styles.metaIcon}><Film size={20} /></span>
-            <div className={styles.metaText}>
-              <span className={styles.metaLabel}>Source</span>
-              <a href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer" className={styles.metaLink}>
-                View Video
-              </a>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className={styles.tabsContainer}>
         <div className={styles.tabs} role="tablist">
           <button
+            type="button"
             role="tab"
             aria-selected={activeTab === 'recipe'}
             className={`${styles.tab} ${activeTab === 'recipe' ? styles.activeTab : ''}`}
             onClick={() => setActiveTab('recipe')}
           >
-            <Utensils size={16} /> Recipe &amp; Video
+            <Utensils size={15} />
+            <span>Recipe &amp; Video</span>
           </button>
           <button
+            type="button"
             role="tab"
             aria-selected={activeTab === 'nutrition'}
             className={`${styles.tab} ${activeTab === 'nutrition' ? styles.activeTab : ''}`}
             onClick={() => setActiveTab('nutrition')}
           >
-            <Apple size={16} /> Nutrition Facts
+            <Apple size={15} />
+            <span>Nutrition Facts</span>
           </button>
         </div>
       </div>
 
       <div className={styles.tabContent}>
         {activeTab === 'recipe' && (
-          <div className={styles.culinaryGrid}>
-            <div className={styles.leftMediaColumn}>
-              {recipe.iframeHtml ? (
-                playVideoId === recipe.id ? (
-                  <div className={styles.videoCard}>
-                    <div className={styles.videoCardTab}>TIKTOK PREVIEW</div>
-                    <div className={styles.iframeContainer} dangerouslySetInnerHTML={{ __html: recipe.iframeHtml }} />
+          <div className={styles.recipeStack}>
+            <div className={styles.videoCollapsibleCard}>
+              <div className={styles.videoPreviewHeader}>
+                <button
+                  type="button"
+                  className={styles.videoPreviewBar}
+                  onClick={handleToggleVideo}
+                  aria-expanded={hasAnyVideoSource ? isVideoExpanded : undefined}
+                  disabled={!hasAnyVideoSource}
+                >
+                  <div className={styles.videoThumbBox} aria-hidden="true">
+                    <Play size={17} fill="currentColor" />
                   </div>
-                ) : (
-                  <div
-                    className={styles.videoFacade}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setPlayVideoId(recipe.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') setPlayVideoId(recipe.id);
-                    }}
-                    title="Tap to load video preview"
+                  <div className={styles.videoBarText}>
+                    <span className={styles.videoBarTitle}>{videoTitle}</span>
+                    <span className={styles.videoBarSub}>{videoSubtitle}</span>
+                  </div>
+                  {hasAnyVideoSource && (
+                    <span
+                      className={`${styles.videoChevronBtn} ${isVideoExpanded ? styles.chevronRotated : ''}`}
+                      aria-hidden="true"
+                    >
+                      <ChevronDown size={16} />
+                    </span>
+                  )}
+                </button>
+
+                {safeSourceUrl && (
+                  <a
+                    href={safeSourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.videoHeaderLinkBtn}
+                    aria-label="Open original video link"
+                    title="Open original video"
                   >
-                    <span className={styles.videoFacadeBadge}>TIKTOK FEED</span>
-                    <div className={styles.videoFacadePlayBtn}>
-                      <Play size={28} className={styles.playIcon} />
+                    <ExternalLink size={15} />
+                  </a>
+                )}
+              </div>
+
+              {hasAnyVideoSource && (
+                <div
+                  className={`${styles.collapseBody} ${isVideoExpanded ? styles.collapseBodyOpen : ''}`}
+                  aria-hidden={!isVideoExpanded}
+                >
+                  <div className={styles.collapseInner}>
+                    <div className={styles.videoExpandedBody}>
+                      {recipe.videoUrl ? (
+                        <div className={styles.videoPlayerWrapper}>
+                          <video
+                            src={recipe.videoUrl}
+                            controls
+                            playsInline
+                            className={styles.videoElement}
+                            preload="metadata"
+                          />
+                        </div>
+                      ) : recipe.iframeHtml && isVideoExpanded ? (
+                        <div
+                          className={styles.iframeContainer}
+                          dangerouslySetInnerHTML={{ __html: recipe.iframeHtml }}
+                        />
+                      ) : null}
+
+                      {safeSourceUrl && (
+                        <a
+                          href={safeSourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.sourceVideoBtn}
+                        >
+                          <ExternalLink size={15} />
+                          <span>Open Original Video</span>
+                        </a>
+                      )}
                     </div>
-                    <span className={styles.videoFacadeText}>Load Video Feed</span>
-                    <span className={styles.videoFacadeSub}>Tapping pulls tracking scripts and video media</span>
                   </div>
-                )
-              ) : recipe.videoUrl ? (
-                <div className={styles.videoCard}>
-                  <div className={styles.videoCardTab}>NOW PLAYING</div>
-                  <div className={styles.videoPlayerWrapper}>
-                    <video
-                      src={recipe.videoUrl}
-                      controls
-                      playsInline
-                      className={styles.videoElement}
-                      preload="metadata"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className={styles.videoCardPlaceholder}>
-                  <span className={styles.placeholderIcon}><Film size={40} /></span>
-                  <p className={styles.placeholderTitle}>No Video Feed</p>
-                  <span className={styles.placeholderSub}>
-                    Add your RAPIDAPI_KEY to download and watch the recipe video right inside the app!
-                  </span>
                 </div>
               )}
             </div>
 
-            <div className={styles.rightContentColumn}>
-              <div className={styles.ingredientsCard}>
-                <h4 className={styles.sectionHeading}>Ingredients Checklist</h4>
-                <p className={styles.sectionSubtitle}>Scale sizes above. Check items as you toss them in.</p>
-                <div className={styles.ingredientsList}>
-                  {recipe.ingredients?.map((ing, idx) => (
-                    <label
-                      key={idx}
-                      className={`${styles.ingredientItem} ${checkedIngredients[idx] ? styles.ingredientChecked : ''}`}
-                    >
-                      <div className={styles.checkboxWrapper}>
-                        <input
-                          type="checkbox"
-                          className={styles.checkbox}
-                          checked={!!checkedIngredients[idx]}
-                          onChange={() => onToggleIngredient(idx)}
-                        />
-                        <span className={styles.customCheckbox}></span>
-                      </div>
-                      <span className={styles.ingredientText}>
-                        <strong className={styles.quantityHighlight}>
-                          {scaleQuantity(ing.quantity, recipe.servings)} {ing.unit}
-                        </strong>{' '}
-                        {ing.name}
-                      </span>
-                    </label>
-                  ))}
+            <section className={styles.accordionCard} aria-label="Ingredients">
+              <div className={styles.accordionHeader}>
+                <button
+                  type="button"
+                  className={styles.accordionToggleBtn}
+                  onClick={() => setIsIngredientsOpen((prev) => !prev)}
+                  aria-expanded={isIngredientsOpen}
+                >
+                  <ChevronDown
+                    size={18}
+                    className={`${styles.accordionChevron} ${isIngredientsOpen ? '' : styles.accordionChevronCollapsed}`}
+                  />
+                  <span className={styles.accordionTitle}>Ingredients</span>
+                  <span
+                    className={`${styles.progressPill} ${checkedCount > 0 ? styles.progressPillActive : ''}`}
+                  >
+                    {checkedCount}/{ingredients.length}
+                  </span>
+                </button>
+
+                <div className={styles.servingsStepper} aria-label="Adjust servings">
+                  <button
+                    type="button"
+                    className={styles.stepperBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAdjustedServings(Math.max(1, adjustedServings - 1));
+                    }}
+                    aria-label="Fewer servings"
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <span className={styles.stepperCount} aria-live="polite">
+                    {adjustedServings}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.stepperBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAdjustedServings(adjustedServings + 1);
+                    }}
+                    aria-label="More servings"
+                  >
+                    <Plus size={14} />
+                  </button>
                 </div>
               </div>
 
-              <div className={styles.instructionsCard}>
-                <h4 className={styles.sectionHeading}>Cooking Directions</h4>
-                <div className={styles.instructionsList}>
-                  {recipe.instructions?.map((step, idx) => (
-                    <div key={idx} className={styles.stepCard}>
-                      <div className={styles.stepIndicator}>
-                        <div className={styles.stepNumber}>{idx + 1}</div>
-                        {idx < recipe.instructions.length - 1 && <div className={styles.stepConnector}></div>}
-                      </div>
-                      <div className={styles.stepContent}>
-                        <p>{step}</p>
-                      </div>
-                    </div>
-                  ))}
+              <div
+                className={`${styles.collapseBody} ${isIngredientsOpen ? styles.collapseBodyOpen : ''}`}
+                aria-hidden={!isIngredientsOpen}
+              >
+                <div className={styles.collapseInner}>
+                  <div className={styles.ingredientsList}>
+                    {ingredients.map((ing, idx) => {
+                      const scaledQty = formatScaledQuantity(ing.quantity, recipe.servings, adjustedServings);
+                      const cleanUnit = formatIngredientUnit(ing.unit);
+                      const qtyWithUnit = [scaledQty, cleanUnit].filter(Boolean).join(' ');
+                      const checked = !!checkedIngredients[idx];
+
+                      return (
+                        <label
+                          key={idx}
+                          className={`${styles.ingredientRow} ${checked ? styles.ingredientRowChecked : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            className={styles.srCheckbox}
+                            checked={checked}
+                            onChange={() => onToggleIngredient(idx)}
+                          />
+                          <span className={`${styles.customBox} ${checked ? styles.customBoxChecked : ''}`} aria-hidden="true">
+                            {checked && <Check size={13} strokeWidth={3} />}
+                          </span>
+                          <span className={styles.ingredientText}>
+                            {qtyWithUnit && (
+                              <>
+                                <strong className={styles.quantityHighlight}>{qtyWithUnit}</strong>{' '}
+                              </>
+                            )}
+                            {ing.name}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
+
+            <section className={styles.accordionCard} aria-label="Cooking Directions">
+              <div className={styles.accordionHeader}>
+                <button
+                  type="button"
+                  className={styles.accordionToggleBtn}
+                  onClick={() => setIsDirectionsOpen((prev) => !prev)}
+                  aria-expanded={isDirectionsOpen}
+                >
+                  <ChevronDown
+                    size={18}
+                    className={`${styles.accordionChevron} ${isDirectionsOpen ? '' : styles.accordionChevronCollapsed}`}
+                  />
+                  <span className={styles.accordionTitle}>Cooking Directions</span>
+                  <span className={styles.stepStatusPill}>
+                    {instructions.length > 0 ? `Step ${activeStep + 1} of ${instructions.length}` : '0 steps'}
+                  </span>
+                </button>
+              </div>
+
+              <div
+                className={`${styles.collapseBody} ${isDirectionsOpen ? styles.collapseBodyOpen : ''}`}
+                aria-hidden={!isDirectionsOpen}
+              >
+                <div className={styles.collapseInner}>
+                  <div className={styles.directionsList}>
+                    {instructions.map((step, idx) => {
+                      const isActive = idx === activeStep;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          className={`${styles.directionRow} ${isActive ? styles.directionRowActive : ''}`}
+                          onClick={() => setActiveStep(idx)}
+                          aria-current={isActive ? 'step' : undefined}
+                        >
+                          <span className={`${styles.stepCircle} ${isActive ? styles.stepCircleActive : ''}`}>
+                            {idx + 1}
+                          </span>
+                          <span className={styles.directionText}>{step}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         )}
 
-        {activeTab === 'nutrition' && <NutritionPanel nutrition={recipe.nutrition} />}
+        {activeTab === 'nutrition' && (
+          <NutritionPanel
+            nutrition={recipe.nutrition}
+            servings={recipe.servings}
+            adjustedServings={adjustedServings}
+          />
+        )}
       </div>
     </div>
   );

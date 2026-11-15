@@ -3,19 +3,20 @@
   --font-sans: var(--font-sans-loaded), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
   /* Modern High-Contrast Warm Culinary Color Palette */
-  --bg-primary: #faf9f6;         /* Soft warm alabaster off-white */
-  --bg-secondary: #f2efe9;       /* Crisp warm neutral grey-tan */
-  --bg-tertiary: #e8e4dc;        /* Clean divider & subtle hover neutral */
-  --card-bg: #ffffff;            /* Pure white background for max legibility */
-  --card-border: #e2ddd5;        /* Subtle, crisp 1px border */
-  --text-primary: #1f1e1d;       /* Deep charcoal (WCAG AAA 14:1 contrast ratio) */
-  --text-secondary: #57534e;     /* Warm stone slate - crisp secondary text */
-  --text-tertiary: #78716c;      /* Muted stone - accessible caption text */
-  
-  --accent-primary: #d9381e;     /* Gourmet Terracotta Red */
+  --bg-primary: #FDFBF7;         /* Warm off-white / cream */
+  --bg-secondary: #F7F3EA;       /* Light sand / cream card surface */
+  --bg-tertiary: #E3DDD1;        /* Subtle hairline divider */
+  --card-bg: #FFFFFF;            /* Elevated pure white surface */
+  --card-border: #E3DDD1;        /* Subtle divider border */
+  --text-primary: #1E1D1A;       /* Deep charcoal text & primary 2px borders */
+  --text-secondary: #6E6A61;     /* Muted / secondary text */
+  --text-tertiary: #78716C;      /* Caption text */
+
+  --accent-primary: #D9381E;     /* Brand primary burnt orange-red */
   --accent-hover: #b92b14;
   --accent-light: #fef2f2;       /* Soft blush tint */
-  --accent-yellow: #f59e0b;      /* Honey Amber accent */
+  --accent-yellow: #F5A623;      /* Brand secondary warm amber-gold */
+  --accent-amber: #F5A623;
   --success: #16a34a;            /* Fresh Herb Green */
   --error: #dc2626;
 
@@ -68,6 +69,7 @@
   --accent-primary: #ef4a2e;
   --accent-hover: #ff6446;
   --accent-light: #3a1914;
+  --accent-amber: #F5A623;
   --success: #4ade80;
   --error: #f87171;
 

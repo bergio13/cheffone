@@ -101,11 +101,11 @@ export default function Home() {
 
   const activeRecipe = previewRecipe || recipes.find((r) => r.id === activeRecipeId);
 
-  const showToast = (msg) => {
+  const showToast = useCallback((msg) => {
     clearTimeout(toastTimer.current);
     setToast(msg);
     toastTimer.current = setTimeout(() => setToast(''), 3000);
-  };
+  }, []);
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   // Reset video preview when the active recipe changes
@@ -285,11 +285,17 @@ export default function Home() {
               continue;
             }
             console.warn('Stopping dish illustration backfill:', errBody?.error || res.status);
+            showToast(
+              errBody?.error?.includes('10,000 neurons')
+                ? 'Cloudflare daily image quota reached — illustration skipped for now'
+                : 'Dish image limit reached — illustration skipped for now'
+            );
             break;
           }
           if (res.status === 503) {
             const errBody = await res.json().catch(() => ({}));
             console.warn('Stopping dish illustration backfill:', errBody?.error || res.status);
+            showToast('Dish illustration service unavailable — skipped for now');
             break;
           }
           if (!res.ok) {
@@ -336,7 +342,7 @@ export default function Home() {
         }
       }
     })();
-  }, [recipes, isOffline, updateRecipeVisuals, backfillTick]);
+  }, [recipes, isOffline, updateRecipeVisuals, backfillTick, showToast]);
 
   // TikTok embed script re-evaluation
   useEffect(() => {
@@ -773,6 +779,7 @@ export default function Home() {
 
         <section className={styles.recipeDetailContainer}>
           <RecipeDetail
+            key={activeRecipe?.id || 'empty'}
             recipe={activeRecipe}
             isSaved={!!activeRecipe && recipes.some((r) => r.id === activeRecipe.id)}
             previewFromFriend={previewFromFriend}
